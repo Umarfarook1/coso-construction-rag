@@ -61,7 +61,7 @@ Full tables: [evals/RESULTS.md](evals/RESULTS.md). Method and caveats: [DESIGN.m
 Python 3.11 or 3.12 and [uv](https://docs.astral.sh/uv/). CPU only; about 1.5 GB of disk for the environment and models.
 
 ```bash
-git clone <this repo> coso-rag && cd coso-rag      # a short path avoids Windows' 260-character limit
+git clone https://github.com/Umarfarook1/coso-construction-rag coso-rag && cd coso-rag   # short path: Windows 260-char limit
 uv sync                                           # installs CPU-only torch
 uv run python scripts/download_model.py           # fine-tuned reranker (~220 MB); without it: hybrid retrieval only
 ```
@@ -147,6 +147,3 @@ The short version (details and fixes in [DESIGN.md section 9](DESIGN.md#9-known-
   correctly answered questions; it needs calibration on logged real questions before it can be trusted to abstain.
 - **Known wrong answers** on the gold set: two wrong rate rows from unusual table layouts, rate notes retrieved but
   not applied, one false premise accepted. Listed in [DESIGN.md section 7](DESIGN.md#7-evaluation).
-
-I used Claude Code as a pair programmer for implementation and first drafts; the design calls and the
-evaluation choices are mine.
