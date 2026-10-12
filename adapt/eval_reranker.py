@@ -1,7 +1,9 @@
 """Before/after for the adaptation, on held-out synthetic queries from DEV/TEST pages (never trained on).
 
   ranking : the hybrid retriever's top-20 is reordered by (a) nothing, (b) the base cross-encoder,
-            (c) the fine-tuned one; Hit@1 and MRR@10 of the source chunk (or its clause / parent item).
+            (c) the fine-tuned one, each alone and fused with the hybrid order (RRF, as answer() does);
+            Hit@1, Hit@8 (inside the generator's context) and MRR@10 of the source chunk (or its clause /
+            parent item).
   gate    : can the score tell a real question from a near-miss (one attribute changed, so the passage no
             longer answers)? AUROC on (query, source passage) pairs, and on the top candidate's score.
 The gate threshold is chosen on DEV (max balanced accuracy on the top score) and written to gate.json.
@@ -60,7 +62,7 @@ def main() -> None:
     out = {"split": a.split, "n_pos": len(pos), "n_near_miss": len(nm), "skipped_stale_ids": missing}
 
     # ---- ranking ------------------------------------------------------------------------------
-    rank = {k: {"hit1": [], "mrr10": []} for k in ("hybrid", "base", "ft")}
+    rank = {k: {"hit1": [], "hit8": [], "mrr10": []} for k in ("hybrid", "base", "ft", "base_fused", "ft_fused")}
     top = {k: {"pos": [], "nm": []} for k in ("base", "ft")}
     for kind, items in (("pos", pos), ("nm", nm)):
         for q in items:
@@ -73,6 +75,7 @@ def main() -> None:
             for name, model in models.items():
                 ps = rr.score(model, q["q"], [c.index_text for c in cands])
                 orders[name] = pinned + [c for _, c in sorted(zip(ps, cands), key=lambda t: -t[0])]
+                orders[f"{name}_fused"] = pinned + rr.fused_order(cands, ps)   # what answer() uses
                 if not pinned:
                     top[name][kind].append(max(ps) if ps else 0.0)
             if kind == "pos":
@@ -80,6 +83,7 @@ def main() -> None:
                     rel = [relevant(c, gold) for c in order]
                     first = next((i for i, x in enumerate(rel) if x), None)
                     rank[name]["hit1"].append(float(bool(rel[:1]) and rel[0]))
+                    rank[name]["hit8"].append(float(any(rel[:8])))   # in the generator's context (k=8)
                     rank[name]["mrr10"].append(1 / (first + 1) if first is not None and first < 10 else 0.0)
     out["ranking"] = {k: {m: round(sum(v) / len(v), 3) for m, v in d.items()} for k, d in rank.items()}
 

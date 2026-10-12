@@ -154,33 +154,33 @@ def answer(index: Index, question: str, llm: LLM | None = None, k: int = 8, mode
     r = retrieve(index, question, k=20 if xenc else k, mode=mode, docs=docs, pool_all_docs=bool(xenc))
     t1 = time.time()
     timings = {"retrieve_s": round(t1 - t0, 3)}
-    gate, gate_note = "", ""
+    gate = ""
     if xenc:
         pinned = [h for h in r.hits if "id" in h.sources]
         rest = [h for h in r.hits if "id" not in h.sources]
         probs = rr.score(xenc, question, [index.chunks[h.idx].index_text for h in rest])
         for h, pr in zip(rest, probs):
             h.sources["xenc"] = round(pr, 3)
-        rest.sort(key=lambda h: -h.sources["xenc"])
-        r.hits = (pinned + rest)[:k]
+        r.hits = (pinned + rr.fused_order(rest, probs))[:k]
         thr = rr.gate_threshold(xenc)
         top = max(probs, default=0.0)
+        # The gate is a review flag, not an instruction to the generator: a threshold chosen on short synthetic
+        # queries put 45% of real (longer, multi-part) answerable questions below it, and telling the model
+        # "no source answers" turned them into refusals. Low scores are shown and logged for review instead.
         if thr is not None:
             gate = f"top passage score {top:.2f} (threshold {thr:.2f})"
             if top < thr and not pinned:
-                gate += ": no passage clearly answers"
-                gate_note = ("Gate note: a relevance model judged that NONE of these sources clearly answers the question. "
-                             "Answer only if a source states it explicitly; otherwise set answerable to false.")
+                gate += ": low confidence, check the cited passage"
         timings["rerank_s"] = round(time.time() - t1, 3)
         t1 = time.time()
     sources = expand_neighbours(index, [index.chunks[h.idx] for h in r.hits])
     if llm is None:  # retrieval-only mode: no model, show the best passages
         return Answer(question, "(retrieval-only mode: no LLM configured; top passages below)", True,
-                      [{"n": i + 1, "chunk_id": c.id, "cite": c.cite(), "quote": c.text[:300], "doc": c.doc,
+                      [{"n": i + 1, "chunk_id": c.id, "cite": c.label(), "quote": c.text[:300], "doc": c.doc,
                         "pdf_page": c.pdf_page, "locator": c.locator, "bboxes": c.bboxes} for i, c in enumerate(sources[:3])],
                       sources, {}, r, timings, gate=gate)
 
-    user = f"{_lookup_note(r)}\n{gate_note}\n\nSources:\n{format_sources(sources)}\n\nQuestion: {question}".strip()
+    user = f"{_lookup_note(r)}\n\n\nSources:\n{format_sources(sources)}\n\nQuestion: {question}".strip()
     data, checks, raw, reply, parsed = {}, {}, "", None, True
     for attempt in range(retries + 1):
         if attempt == 0:
@@ -211,7 +211,7 @@ def answer(index: Index, question: str, llm: LLM | None = None, k: int = 8, mode
         if 1 <= n <= len(sources):
             c = sources[n - 1]
             q = next((x.get("quote", "") for x in data.get("quotes", []) if re.match(rf"S?{n}$", str(x.get("source", "")))), "")
-            cits.append({"n": n, "chunk_id": c.id, "cite": c.cite(), "quote": q, "doc": c.doc, "pdf_page": c.pdf_page,
+            cits.append({"n": n, "chunk_id": c.id, "cite": c.label(), "quote": q, "doc": c.doc, "pdf_page": c.pdf_page,
                          "locator": c.locator, "bboxes": c.bboxes})
     text = data.get("answer", "") or ""
     if not data.get("answerable", True) and data.get("missing") and data["missing"] not in text:

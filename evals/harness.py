@@ -117,7 +117,7 @@ def rank_metrics(ranked_chunks, g) -> dict:
     loc = [chunk_relevant(c, g) for c in ranked_chunks]
     pag = [page_relevant(c, g) for c in ranked_chunks]
     first = next((i for i, x in enumerate(loc) if x), None)
-    return {"hit1": float(loc[:1] == [True]), "hit5": float(any(loc[:5])), "hit10": float(any(loc[:10])),
+    return {"hit1": float(loc[:1] == [True]), "hit5": float(any(loc[:5])), "hit8": float(any(loc[:8])), "hit10": float(any(loc[:10])),
             "mrr10": 1.0 / (first + 1) if first is not None and first < 10 else 0.0,
             "page_hit5": float(any(pag[:5]))}
 
@@ -129,7 +129,7 @@ def run_retrieval(split: str = "test", modes=None) -> dict:
 
     ix = Index.build()
     gold = [g for g in load_gold() if g["answerable"] and g["gold"] and (split == "all" or g["eval_split"] == split)]
-    modes = modes or ["bm25", "dense", "hybrid", "hybrid+xenc_base", "hybrid+xenc_ft"]
+    modes = modes or ["bm25", "dense", "hybrid", "hybrid+xenc_base", "hybrid+xenc_base_fused", "hybrid+xenc_ft", "hybrid+xenc_ft_fused"]
     ft = rr.default_reranker()
     res: dict[str, list] = {m: [] for m in modes}
     for g in gold:
@@ -140,13 +140,15 @@ def run_retrieval(split: str = "test", modes=None) -> dict:
                 cache[base_mode] = retrieve(ix, g["question"], k=20, mode=base_mode, pool_all_docs=True)
             hits = list(cache[base_mode].hits)
             if "+xenc" in m:
-                name = rr.BASE_XENC if m.endswith("base") else ft
+                name = rr.BASE_XENC if "xenc_base" in m else ft
                 if name is None:
                     continue
                 pinned = [h for h in hits if "id" in h.sources]
                 rest = [h for h in hits if "id" not in h.sources]
-                ps = rr.score(name, g["question"], [ix.chunks[h.idx].index_text for h in rest])
-                rest = [h for _, h in sorted(zip(ps, rest), key=lambda t: -t[0])]
+                if (name, "scores") not in cache:   # the fused mode reuses the scores of the plain one
+                    cache[(name, "scores")] = rr.score(name, g["question"], [ix.chunks[h.idx].index_text for h in rest])
+                ps = cache[(name, "scores")]
+                rest = rr.fused_order(rest, ps) if m.endswith("_fused") else [h for _, h in sorted(zip(ps, rest), key=lambda t: -t[0])]
                 hits = pinned + rest
             ranked = [ix.chunks[h.idx] for h in hits]
             res[m].append({"id": g["id"], "doc": g["doc"], "type": g["type"], **rank_metrics(ranked, g)})
@@ -154,7 +156,7 @@ def run_retrieval(split: str = "test", modes=None) -> dict:
     for m, rows in res.items():
         if not rows:
             continue
-        summary[m] = {k: round(mean([r[k] for r in rows]), 3) for k in ("hit1", "hit5", "hit10", "mrr10", "page_hit5")}
+        summary[m] = {k: round(mean([r[k] for r in rows]), 3) for k in ("hit1", "hit5", "hit8", "hit10", "mrr10", "page_hit5")}
         summary[m]["n"] = len(rows)
         summary[m]["by_doc"] = {d: round(mean([r["hit5"] for r in rows if r["doc"] == d]), 3)
                                 for d in sorted({r["doc"] for r in rows})}
@@ -221,7 +223,8 @@ def run_e2e(name: str, split: str = "test", limit: int = 0, rerank: bool = True,
         for r in rows:
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
     xenc = rr.default_reranker() if rerank else None
-    (out / "config.json").write_text(json.dumps({"llm": llm.name, "rerank": rerank, "reranker": xenc,
+    shown = Path(xenc).resolve().relative_to(ROOT).as_posix() if xenc and Path(xenc).exists() else xenc   # no local paths
+    (out / "config.json").write_text(json.dumps({"llm": llm.name, "rerank": rerank, "reranker": shown,
                                                  "gate_threshold": rr.gate_threshold(xenc) if xenc else None, "mode": mode, "split": split,
                                                  "n": len(rows)}, indent=2))
     print(report(out))

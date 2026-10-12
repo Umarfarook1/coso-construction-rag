@@ -59,3 +59,13 @@ def test_document_hints():
     assert "nit" in doc_hints("इस निविदा का UBN नंबर क्या है?")
     assert "bsr" in doc_hints("rate per sqm for paving blocks")
     assert "gcc" in doc_hints("Who decides compensation under the contract?")
+
+
+def test_fused_order_keeps_a_passage_either_ranker_is_sure_about():
+    from cosorag.rerank import fused_order
+
+    hybrid = ["row_a", "row_b", "row_c", "row_d", "row_e"]          # retriever order
+    xenc = [0.10, 0.20, 0.90, 0.05, 0.30]                           # cross-encoder prefers row_c
+    out = fused_order(hybrid, xenc)
+    assert out[0] == "row_c" and out.index("row_a") <= 1           # promoted, but the retriever's top stays near the top
+    assert sorted(out) == sorted(hybrid)

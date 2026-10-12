@@ -40,7 +40,7 @@ def _print_answer(a, show_sources: bool) -> None:
     if show_sources:
         con.print("\n[bold]Retrieved sources[/]")
         for i, c in enumerate(a.sources, 1):
-            con.print(f"  S{i} {c.cite()}  [dim]{c.text[:110].replace(chr(10), ' ')}[/]")
+            con.print(f"  S{i} {c.label()}  [dim]{c.text[:110].replace(chr(10), ' ')}[/]")
     t = a.timings
     con.print(f"[dim]retrieve {t.get('retrieve_s', 0)}s | rerank {t.get('rerank_s', 0)}s | generate {t.get('generate_s', 0)}s"
               f"{' (cached)' if t.get('cached') else ''}[/]")
@@ -99,8 +99,17 @@ def main(argv: list[str] | None = None) -> None:
         if a.llm:
             os.environ["COSORAG_LLM"] = a.llm
         ix = Index.build()
+        import time
+
+        from . import rerank as rr
+        from .index import load_embedder
         from .llm import llm_configured
 
+        t0 = time.time()   # load models up front so the per-question timings below are per question
+        load_embedder(ix.model_name)
+        if not a.no_rerank and rr.default_reranker():
+            rr.load(rr.default_reranker())
+        print(f"models loaded in {time.time() - t0:.1f}s")
         llm = None if a.no_llm else (LLM() if llm_configured() else None)
         if llm is None and not a.no_llm:
             print("No language model configured (see .env.example): showing the cited passages only.")

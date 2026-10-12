@@ -33,6 +33,12 @@ class Chunk:
             page += f" (PDF p. {self.pdf_page})"
         return f"{DOCS[self.doc]['title']}, {self.locator}, {page}"
 
+    def label(self) -> str:
+        """cite() for people: no repeated page when the locator already starts with it ("p. 3, condition 1").
+        The prompt keeps cite() so the evaluated runs stay reproducible from the cache."""
+        c = self.cite()
+        return c.rsplit(", ", 1)[0] if self.locator.startswith(f"p. {self.pdf_page},") else c
+
 
 def save_chunks(chunks: list[Chunk], path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)

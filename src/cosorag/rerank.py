@@ -41,6 +41,14 @@ def gate_threshold(name: str) -> float | None:
     return json.load(open(p))["threshold"] if os.path.exists(p) else None
 
 
+def fused_order(items: list, scores: list[float], k: int = 60) -> list:
+    """Reciprocal-rank fusion of the retriever's order (items arrive in it) with the cross-encoder's order.
+    Re-sorting by the cross-encoder alone dropped rows it misread on long, multi-part questions from the
+    context (gold-set citation hit 94% -> 88%); fused, a passage stays near the top if either ranker is sure."""
+    xr = {i: r for r, i in enumerate(sorted(range(len(items)), key=lambda i: -scores[i]))}
+    return [items[i] for i in sorted(range(len(items)), key=lambda i: -(1 / (k + i) + 1 / (k + xr[i])))]
+
+
 def score(name: str, query: str, passages: list[str]) -> list[float]:
     """Relevance probabilities in [0, 1] (sigmoid of the logit)."""
     if not passages:
