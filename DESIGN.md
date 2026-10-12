@@ -34,7 +34,7 @@ flowchart LR
   Q[question] --> ID[exact id lookup<br/>S-2.33.1, Clause 10CC]
   Q --> R[BM25 + e5 dense<br/>RRF, per-document lists]
   C --> R
-  ID & R --> X[fine-tuned cross-encoder<br/>rerank + grounding gate]
+  ID & R --> X[fine-tuned cross-encoder<br/>fused rerank + confidence flag]
   X --> G[gpt-oss-120b<br/>quote, then answer]
   G --> V[verifier: quotes in source,<br/>numbers in cited source or derivable]
   V --> OUT[answer + citations<br/>doc, locator, page, bbox]
@@ -60,7 +60,7 @@ id (`S-2.33.1`), unit, rate and bbox; parents become "group" chunks listing thei
 their own chunks. A chunk puts the row first and its parent chain after ("S-2.33.1: Pillar Cock 15 mm | Each |
 Rs. 787.00 / Part of: Providing and fixing superior quality CP brass fittings"): both encoders truncate at 256
 tokens, and 22% of rows sit under a parent description long enough that a parent-first layout would cut off the
-very words ("15 mm", the rate) that distinguish one row from its siblings. 9,600 items, 6 s for 824 pages. Measured: 63/63 hand-checked rows exactly right (item, unit,
+very words ("15 mm", the rate) that distinguish one row from its siblings. 8,159 rated rows plus 1,158 parent groups and 207 note chunks, 6 s for 824 pages. Measured: 63/63 hand-checked rows exactly right (item, unit,
 rate, full multi-line description), but that is in-sample (two misses on those pages were fixed); the
 out-of-sample evidence is that across the whole document an independently written parser (column
 edges from the header box) agrees on the rate for 6,451 of 6,510 rows both extract (99.1%) and on the unit for
@@ -108,12 +108,15 @@ the contract to OCR, and none of the 183 pages of the two born-digital judgments
   `pwd2425wsob17397` whole, folds Devanagari digits and Indian digit grouping (5,72,940 = 572940), and
   normalises nukta and chandrabindu. Dense is multilingual-e5-small (118M, CPU). Brute-force cosine over 10k
   vectors takes milliseconds, so no ANN index.
-* **Per-document lists.** The first error analysis showed the 32-chunk tender being drowned by 9,600 rate rows,
+* **Per-document lists.** The first error analysis showed the 32-chunk tender being drowned by 9,649 schedule-of-rates chunks,
   and tender questions answered from the CPWD contract. When a query names a document's vocabulary (tender,
   bid, EMD, निविदा / rate, sqm / clause, Engineer-in-Charge) that document's own top-10 joins the fusion. For
   reranking, the candidate pool is the fused top-20 plus every document's own top-3, so the cross-encoder, not
-  the corpus size, decides between a clause, a rate row and a tender condition (a question like "within how many
-  days must the agreement be signed?" carries no tender vocabulary at all).
+  the corpus size, gets a say between a clause, a rate row and a tender condition (a question like "within how
+  many days must the agreement be signed?" carries no tender vocabulary at all).
+* **Reranking is fused, not a re-sort.** The cross-encoder's order is combined with the hybrid order by RRF
+  (same k=60), and the top 8 go to the generator. Re-sorting by the cross-encoder alone lost rows on long
+  questions (section 6).
 * **Neighbour expansion.** A clause can span pages; the next and previous chunk of a top clause are added.
 
 ## 5. Grounded generation
@@ -153,9 +156,68 @@ model was retrained.
 
 **Training.** `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` (118M, multilingual incl. Hindi), binary
 cross-entropy with positive weighting, word embeddings frozen (keeps the multilingual vocabulary, cheaper steps),
-one epoch on 9,519 pairs (2,173 positives, 6,519 mined hard negatives, 827 near-misses) in 91 minutes on a 4-core laptop CPU. The gate threshold is chosen on DEV pages only.
+one epoch on 9,519 pairs (2,173 positives, 6,519 mined hard negatives, 827 near-misses) in 91 minutes on a
+4-core laptop CPU. The gate threshold (0.70, best balanced accuracy between real and near-miss queries) was
+chosen on DEV pages only.
 
-**Result.** {{RERANKER_RESULTS}}
+**Result in isolation.** On held-out synthetic queries from TEST page blocks (never trained on), against the
+hybrid order and the same cross-encoder before fine-tuning:
+
+| reranking (TEST pages: 400 questions, 200 near-misses) | Hit@1 | Hit@8 (in context) | MRR@10 |
+|---|---|---|---|
+| none (hybrid order) | 0.537 | 0.800 | 0.632 |
+| off-the-shelf cross-encoder, re-sorted | 0.652 | 0.848 | 0.723 |
+| fine-tuned, re-sorted | 0.708 | 0.882 | 0.779 |
+| off-the-shelf, fused with the hybrid order | 0.590 | 0.850 | 0.684 |
+| fine-tuned, fused with the hybrid order (submitted) | 0.640 | 0.873 | 0.726 |
+
+| near-miss detection, AUROC (real question vs one attribute changed) | score on the source passage | top score over candidates |
+|---|---|---|
+| off-the-shelf | 0.45 | 0.41 |
+| fine-tuned | 0.84 | 0.77 |
+
+Fine-tuning helps consistently here (Hit@1 +5.6 points re-sorted, +5.0 fused) and turns a score that cannot tell
+"15 mm" from "20 mm" (AUROC 0.45, worse than chance: the off-the-shelf model rewards the overlapping words) into
+one that mostly can (0.84). Fusion gives back part of the gain on these short synthetic queries (Hit@1 0.708 to
+0.640); that is the price of not trusting the cross-encoder alone on real, longer questions, explained next.
+
+**Result end to end, and the mistake it exposed.** My first integration re-sorted the candidates by the
+fine-tuned score and, when the top score was under the threshold, told the generator that no source clearly
+answers. On the gold set it lost to having no reranker at all: 80.7% vs 83.9% judged correct, with over-refusal
+rising from 2.4% to 10.7%. The per-question diff showed two causes:
+
+1. *The threshold did not transfer.* It was chosen on short synthetic queries, where the score separates real
+   questions from near-misses well (AUROC 0.86). On real gold questions the same score is weaker (AUROC 0.73;
+   the off-the-shelf model is at chance, 0.53), and 48% of answerable questions fall under 0.70: long, multi-part
+   practitioner questions ("extra material cost of upsizing a 50 m GI pipe run from 20 mm to 25 mm") score low
+   against any single row, even the right one. The prompt note turned those into refusals.
+2. *Re-sorting dropped rows.* Ranked by the cross-encoder alone, rows it misread on long questions fell out of the
+   8 passages the generator sees (gold Hit@1 0.786 -> 0.750, Hit@8 0.976 -> 0.952), the same drop the
+   off-the-shelf model caused.
+
+The fix, chosen on the gold set only: fuse the cross-encoder's order with the hybrid order (RRF, the same untuned
+k=60 as retrieval), and keep the gate score as a review flag shown with the answer instead of an instruction to
+the generator. The first version had already been frozen and run once on the blind set; that run is reported
+next to the fixed one.
+
+| gold set (96) / blind set (30), judged correct | gold | blind | negatives handled, gold + blind |
+|---|---|---|---|
+| no reranker | 83.9% | 85.0% | 12/19 |
+| off-the-shelf cross-encoder, fused | 86.5% | 85.0% | 11/19 |
+| fine-tuned, re-sorted, gate note in the prompt (first version) | 80.7% | 86.7% | 14/19 |
+| **fine-tuned, fused, gate as a flag (submitted)** | **84.9%** | **90.0%** | **16/19** |
+
+**What I conclude.** Fusing a cross-encoder into the ranking helps; on real questions the fine-tuned and the
+off-the-shelf one are tied as rankers once fused (gold Hit@1 0.833 vs 0.821, MRR 0.888 vs 0.893), although the
+fine-tuned one is clearly better on the synthetic held-out queries. Fine-tuning did *not* raise overall accuracy
+over a good off-the-shelf cross-encoder: across all 126 gold and blind questions both are at 86.1%, and every
+paired difference is inside its interval. What it did change is the behaviour it was trained for: questions that
+should be declined (near-misses, false premises, things the documents do not contain) are handled in 16 of 19
+cases against 11 of 19 for the off-the-shelf model (12 of 19 with no reranker), better on both sets separately;
+at n = 19 that is a consistent direction, not a proven effect. Its score is also a real, if uncalibrated,
+answerability signal on real questions (AUROC 0.73 vs 0.53). The lesson I would take into production: an offline
+metric on synthetic data is not a deployment threshold. A confidence score has to be calibrated on logged,
+labelled real questions before it is allowed to change an answer; until then it routes answers to review.
 
 **Alternatives I rejected.**
 * Fine-tuning the bi-encoder (e5-small). The textbook choice and cheap, but exact ids and BM25 already resolve
@@ -174,10 +236,11 @@ one epoch on 9,519 pairs (2,173 positives, 6,519 mined hard negatives, 827 near-
 28 tender), each with the answer, key facts, gold page and locator, and a question type (lookup, interpretation,
 multi-hop, exact rate, child row, ditto, note modifier, cross-lingual, Hindi, Hinglish, table, conditional,
 unanswerable, near-miss, false premise). They were drafted with an AI assistant directly from the pages and every
-answer was re-checked against the page by a second pass. I ran one round of error analysis on this set and fixed
-general issues (document routing, prompt rules, verifier arithmetic), so it is a development set. The clean
-estimate is a **blind set of 30 questions** written by a fresh pass on held-out pages after the code freeze and
-run once (`evals/gold_blind/`).
+answer was re-checked against the page by a second pass. I ran two rounds of error analysis on this set (the
+first fixed document routing, prompt rules and verifier arithmetic; the second, the reranker integration in
+section 6), so it is a development set. The cleaner estimate is a **blind set of 30 questions** written by a
+fresh pass on held-out pages after the code freeze, never read while building, and run once per configuration
+(`evals/gold_blind/`).
 
 **Metrics.** Correctness by an LLM judge (Claude Sonnet 4.6, a different family from the generator, sees the
 gold answer, not the sources), plus a deterministic lower bound (every key fact found, format-tolerant for dates
@@ -187,7 +250,44 @@ confirms the answer declined or rejected the premise. Over-refusal: the model de
 Share of answers with a number that is neither in a cited source nor derivable. Retrieval Hit@1/5 and MRR@10 at
 locator level, per retrieval mode. 95% bootstrap intervals everywhere; paired bootstrap for before/after.
 
-{{EVAL_RESULTS}}
+**Results of the submitted system** (all configurations and slices: [evals/RESULTS.md](evals/RESULTS.md)):
+
+| | gold, 96 (development) | blind, 30 |
+|---|---|---|
+| judged correct | 84.9% [79, 91] | 90.0% [80, 98] |
+| key facts all found (deterministic lower bound) | 75.0% | 66.7% |
+| citation hit | 92.9% | 95.2% |
+| negatives handled | 8/10 | 8/9 |
+| over-refusal | 4.8% | 4.8% |
+| answers with a number not in a cited source | 8.3% | 9.5% |
+
+By document on gold: contract 85.9%, rates 84.7%, tender 83.9%. Latency on a free 4-core laptop CPU with warm
+models: retrieval 0.03 s, cross-encoder 2.0 s for about 23 candidates, generation about 2 s (the logged p50 of
+7.5 s in the runs was measured with other evaluation jobs sharing the CPU). Loading the models takes about 25 s
+once per process.
+
+Retrieval on the 84 answerable gold questions (locator level: the right clause, rate row or tender condition):
+
+| mode | Hit@1 | Hit@8 (what the generator sees) | MRR@10 |
+|---|---|---|---|
+| BM25 (id-preserving tokenizer) | 0.738 | 0.905 | 0.798 |
+| dense (multilingual-e5-small) | 0.667 | 0.881 | 0.748 |
+| hybrid: RRF + exact ids + per-document lists | 0.786 | 0.976 | 0.855 |
+| + off-the-shelf cross-encoder, fused | 0.821 | 0.976 | 0.893 |
+| + fine-tuned cross-encoder, fused (submitted) | 0.833 | 0.976 | 0.888 |
+
+**What still fails** (22 of 96 gold answers below full marks, 7 of them wrong):
+* *Wrong row with a real citation*, twice, both traced to the rate parser: a 2.2 kW pump row whose parent
+  description is printed as a numbered row of its own (so the row's chunk never says "submersible dewatering"),
+  and a WBM grading row. A lettered variant ("H-2.1.4(b) with power machines") sits in one record with its
+  sibling and the model read its rate as blank.
+* *Notes retrieved but not applied*: "+5% for grade AA pipes", "proportionate for a tank 0.5 m longer". The note
+  is in the context; the model declines to do the arithmetic.
+* *A false premise accepted*: "why is compensation for delay capped at 5%?" is answered as if 5% were right (it is
+  10%; 5% appears in three other clauses).
+* *Cross-document leakage*: "the defect liability period for this work" (a tender question) is answered with the
+  contract's 12 months, though the notice states none.
+* *Partial answers*: a second condition omitted, an office named wrongly in a long condition.
 
 ## 8. Production and scale
 
@@ -198,8 +298,8 @@ locator level, per retrieval mode. 95% bootstrap intervals everywhere; paired bo
   go into relational tables, not only into vectors.
 * **Versions and amendments.** BSRs are revised yearly and contracts carry corrigenda and Schedule F values per
   contract; every chunk needs `effective_from` and a supersedes link, and answers must say which version they used.
-* **Latency and cost.** Warm query: retrieval ~0.1 s, reranking ~1-2 s on CPU (a GPU or ONNX int8 brings it to
-  ~50 ms), generation ~2-4 s. gpt-oss-120b costs about $0.15/$0.62 per million tokens, i.e. under Rs 0.1 per
+* **Latency and cost.** Warm query on a laptop CPU: retrieval 0.03 s, reranking 2.0 s (a GPU or int8 ONNX brings
+  it to tens of milliseconds), generation about 2 s. gpt-oss-120b costs about $0.15/$0.62 per million tokens, i.e. under Rs 0.1 per
   question. Mumbai hosting keeps tender data in India.
 * **Quality gates.** The gold and blind sets become a CI gate (no deploy if correctness, citation hit or refusal
   recall drops); every query is traced (retrieved ids, scores, gate score, verifier result); low gate scores and
@@ -228,11 +328,15 @@ What breaks today, roughly in the order I would fix it:
    by a contracts or estimating professional, and correctness is graded by an LLM judge.
 6. **Routing is keyword-based.** Three documents make keyword cues enough; with hundreds of documents this needs
    metadata filters and a learned router.
-7. **CPU latency.** The cross-encoder adds about 1-3 s per question on a laptop CPU (int8 ONNX or a GPU brings it
+7. **CPU latency.** The cross-encoder adds about 2 s per question on a laptop CPU (int8 ONNX or a GPU brings it
    to tens of milliseconds).
 8. **One closed model in ingestion.** The primary tender reading uses Claude Sonnet 4.6 (best measured CER); the
    open-weight readers were close on digits (Llama 4 Maverick 92/94 fields) and are used for the cross-check, so
    a fully open pipeline is a configuration change with a measured cost.
+9. **The adaptation's gain is narrow and the gate is uncalibrated.** The fine-tuned reranker ties the same model
+   off the shelf on overall accuracy and helps on declining near-misses (section 6). Its synthetic training
+   queries are shorter and simpler than real ones, so its score runs low on long, multi-part questions; the
+   threshold flags about half of real answerable questions for review. It is a review signal, not a decision.
 
 ## 10. With more time
 
@@ -243,7 +347,8 @@ What breaks today, roughly in the order I would fix it:
    `effective_from` / supersedes links for revised schedules, corrigenda and each contract's Schedule F.
 3. **A professional test set.** 50 questions written by a quantity surveyor and a contracts manager, used to
    calibrate the judge (agreement, kappa) and to replace the assistant-drafted gold set as the main benchmark.
-4. **Gate policy.** Today the gate tells the generator to be strict; try it as a hard abstain plus a human-review
-   queue and measure the trade-off between refusal recall and over-refusal on a larger negative set.
-5. **Cheaper and faster.** int8 ONNX for the cross-encoder (CPU latency from ~1 s to tens of ms), and a second
+4. **Calibrate the gate on real questions.** Today it is a review flag. Log real questions with their gate
+   scores, label a few hundred, recalibrate the threshold (or train on real query shapes: long, multi-part,
+   with arithmetic), and only then let it abstain; measure refusal recall against over-refusal on that set.
+5. **Cheaper and faster.** int8 ONNX for the cross-encoder (CPU latency from ~2 s to tens of ms), and a second
    adaptation experiment on the embedder to see whether the two gains add up.

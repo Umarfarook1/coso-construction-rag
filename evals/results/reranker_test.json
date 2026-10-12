@@ -1,0 +1,43 @@
+{
+ "split": "test",
+ "n_pos": 400,
+ "n_near_miss": 200,
+ "skipped_stale_ids": 0,
+ "ranking": {
+  "hybrid": {
+   "hit1": 0.537,
+   "hit8": 0.8,
+   "mrr10": 0.632
+  },
+  "base": {
+   "hit1": 0.652,
+   "hit8": 0.848,
+   "mrr10": 0.723
+  },
+  "ft": {
+   "hit1": 0.708,
+   "hit8": 0.882,
+   "mrr10": 0.779
+  },
+  "base_fused": {
+   "hit1": 0.59,
+   "hit8": 0.85,
+   "mrr10": 0.684
+  },
+  "ft_fused": {
+   "hit1": 0.64,
+   "hit8": 0.873,
+   "mrr10": 0.726
+  }
+ },
+ "gate": {
+  "base": {
+   "auroc_pair": 0.45,
+   "auroc_top": 0.407
+  },
+  "ft": {
+   "auroc_pair": 0.838,
+   "auroc_top": 0.772
+  }
+ }
+}
