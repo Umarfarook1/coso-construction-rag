@@ -1,0 +1,84 @@
+{
+ "CPWD-GCC-2020_construction-contract_EN.pdf": {
+  "pages": 112,
+  "ocr": 19,
+  "reasons": {
+   "no text layer": 2,
+   "legacy Kruti Dev font": 17
+  }
+ },
+ "IS13920-1993_ductile-detailing_EN.pdf": {
+  "pages": 24,
+  "ocr": 3,
+  "reasons": {
+   "broken Devanagari shaping": 1,
+   "no text layer": 2
+  }
+ },
+ "IS456-2000_concrete-code_EN.pdf": {
+  "pages": 114,
+  "ocr": 25,
+  "reasons": {
+   "broken Devanagari shaping": 1,
+   "no text layer": 5,
+   "words glued together (bad OCR layer)": 19
+  }
+ },
+ "IS875-3-1987_wind-loads_EN.pdf": {
+  "pages": 67,
+  "ocr": 9,
+  "reasons": {
+   "broken Devanagari shaping": 1,
+   "no text layer": 7,
+   "words glued together (bad OCR layer)": 1
+  }
+ },
+ "NHAI-v-MGContractors_DelhiHC-arbitration_EN.pdf": {
+  "pages": 93,
+  "ocr": 0,
+  "reasons": {}
+ },
+ "PMGSY-III-guidelines_HINDI_image-only-scan.pdf": {
+  "pages": 46,
+  "ocr": 46,
+  "reasons": {
+   "no text layer": 46
+  }
+ },
+ "PMGSY-III-summary_HINDI_selectable-text.pdf": {
+  "pages": 2,
+  "ocr": 2,
+  "reasons": {
+   "broken Devanagari shaping": 2,
+   "private-use / control characters": 2
+  }
+ },
+ "RajasthanPWD-eTender-notice_HINDI_image-only-scan.pdf": {
+  "pages": 6,
+  "ocr": 6,
+  "reasons": {
+   "no text layer": 6
+  }
+ },
+ "RHB-BSR-2024_schedule-of-rates_EN.pdf": {
+  "pages": 824,
+  "ocr": 69,
+  "reasons": {
+   "no text layer": 69
+  }
+ },
+ "SP16-1980_design-aids-RC_dense-tables_EN.pdf": {
+  "pages": 255,
+  "ocr": 149,
+  "reasons": {
+   "broken Devanagari shaping": 1,
+   "no text layer": 147,
+   "words glued together (bad OCR layer)": 1
+  }
+ },
+ "Ssangyong-v-NHAI_SupremeCourt-arbitration_EN.pdf": {
+  "pages": 90,
+  "ocr": 0,
+  "reasons": {}
+ }
+}

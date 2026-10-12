@@ -1,0 +1,249 @@
+# Design notes
+
+How a question becomes a cited answer, why each piece is the way it is, what I measured, and what I would
+change for production. Numbers come from the files in `evals/results/` and `runs/`.
+
+## 1. The documents and why they are hard
+
+I picked three documents of different types that map onto one workflow a contractor actually runs: read a
+tender notice, price the work, then live under the contract.
+
+| Document | Type | What makes it hard |
+|---|---|---|
+| **CPWD General Conditions of Contract 2020** (112 pp.) | born-digital English contract | Clause titles sit in the left margin, not next to the clause text, so a naive text dump attaches them to the wrong clause. The bilingual appendix pages carry Hindi in a legacy Kruti Dev font that extracts as gibberish ("fufonk ,oa lafonk"). Printed page = PDF page - 2. Many answers depend on Schedule F, which is blank in this generic template. Confusable numbers: 5% and 10% each appear in three different clauses. |
+| **RHB Basic Schedule of Rates 2024** (824 pp.) | table-heavy schedule of rates | The table is a hierarchy printed flat: a child row ("2.33.1 Pillar Cock 15 mm | Each | 787.00") means nothing without its parent ("Providing and fixing superior quality CP brass fittings"). "-do-" rows mean "ditto the row above". Item numbers restart in every chapter (1,097 numbers repeat), so "item 1.1.1" is ambiguous. Notes change rates ("add 50% for coloured chinaware over items 1.1 to 1.7"). The printed page "S-21" is PDF page 260. The source itself has defects: the same material at two rates, duplicate item numbers, a Rs 0.00 rate. |
+| **Rajasthan PWD e-tender notice 68/2024-25** (6 pp.) | image-only Hindi scan | No text layer at all, handwritten fields (letter no. 1792, date 27-3-25), dense fee-slab tables, conditional amounts (EMD 0.5% inside the registration jurisdiction, 2% outside), mixed Hindi and English, and conflicts inside the notice itself (the intro invites "AA/A" class contractors while the table says "B - Class Civil"; condition 14 and 15 disagree on GST). |
+
+Not chosen: the IS codes (scans with a broken OCR layer; the next document I would add), SP16 (charts and table
+images), the two arbitration judgments (the natural next step for a delay-claims workflow: Clause 2/5 of the
+contract plus how courts treat such claims), and PMGSY. The 46-page "PMGSY-III guidelines" scan is actually the
+2011 guidelines, and the 2-page "selectable-text" summary has a corrupt text layer (wkhtmltopdf dropped the
+conjuncts: "प्रधानमंत्री" extracts as "धानमंी"), which I used to test the text-layer quality check instead.
+
+## 2. Architecture
+
+```mermaid
+flowchart LR
+  subgraph Ingest [offline ingestion, run once]
+    A1[CPWD GCC PDF] --> P1[clause parser<br/>font + position]
+    A2[RHB BSR PDF] --> P2[row parser<br/>parent chain + ditto]
+    A3[Tender scan] --> O[3 independent vision readings<br/>+ number vote + adjudication]
+    O --> P3[segmenter + English twin<br/>digit-preserving translation]
+    P1 & P2 & P3 --> C[(10,025 chunks<br/>page, locator, bbox)]
+  end
+  Q[question] --> ID[exact id lookup<br/>S-2.33.1, Clause 10CC]
+  Q --> R[BM25 + e5 dense<br/>RRF, per-document lists]
+  C --> R
+  ID & R --> X[fine-tuned cross-encoder<br/>rerank + grounding gate]
+  X --> G[gpt-oss-120b<br/>quote, then answer]
+  G --> V[verifier: quotes in source,<br/>numbers in cited source or derivable]
+  V --> OUT[answer + citations<br/>doc, locator, page, bbox]
+```
+
+Every chunk carries `doc`, `pdf_page`, the printed `page_label`, a `locator` (clause, item or tender condition)
+and, where the PDF has coordinates, a bounding box. A chunk never spans a page, so a citation always lands on
+one page. `cosorag show <chunk_id>` renders that page with the region highlighted.
+
+## 3. Ingestion
+
+**Contract.** PyMuPDF spans with font flags and positions. Bold "Clause N" lines start a clause; the margin title
+is matched by vertical position (it is printed at the end of the page's text stream, so text order is useless).
+Decoration (1 pt "1234567890" strips, running header, footer) and Kruti Dev lines are dropped. 68 clauses plus
+Schedule F, Integrity Pact, Safety Code, labour regulations and forms; 344 chunks.
+
+**Schedule of rates.** I tested generic table extractors first: PyMuPDF `find_tables` and pdfplumber recovered
+54% and 56% of 63 hand-checked rows; the ruled-line strategies 0% (the table body has no lines). Positional
+parsing does much better, so the parser segments rows by item-number anchors in the left
+column (unit and rate cells sit 1-2 pt off the description baseline), then resolves the parent chain across
+pages and expands "-do-" from the previous sibling. Each rated item becomes one chunk with a chapter-qualified
+id (`S-2.33.1`), unit, rate and bbox; parents become "group" chunks listing their children; chapter notes become
+their own chunks. A chunk puts the row first and its parent chain after ("S-2.33.1: Pillar Cock 15 mm | Each |
+Rs. 787.00 / Part of: Providing and fixing superior quality CP brass fittings"): both encoders truncate at 256
+tokens, and 22% of rows sit under a parent description long enough that a parent-first layout would cut off the
+very words ("15 mm", the rate) that distinguish one row from its siblings. 9,600 items, 6 s for 824 pages. Measured: 63/63 hand-checked rows exactly right (item, unit,
+rate, full multi-line description), but that is in-sample (two misses on those pages were fixed); the
+out-of-sample evidence is that across the whole document an independently written parser (column
+edges from the header box) agrees on the rate for 6,451 of 6,510 rows both extract (99.1%) and on the unit for
+98.7% (`evals/bsr_crosscheck.py`). Disagreements cluster in three layouts: hire-charge tables with several rate
+columns, rate ranges ("70.00 to 100.00") in horticulture, and a shifted unit column on some electrical pages.
+About 3% of rows hold unnumbered variants ("(i) low porosity ... (ii) high porosity") and keep both rates in one
+record.
+
+**Tender scan.** I ran an OCR bake-off on 6 hand-transcribed regions (61 lines, 86 numbers):
+
+| Engine | CER | Numbers exact | Notes |
+|---|---|---|---|
+| Claude Sonnet 4.6 (vision) | 0.6% | 86/86 | |
+| Llama 4 Maverick (open-weight) | 2.0% | 81/86 | |
+| Gemma 3 27B (open-weight) | 4.3% | 86/86 | stops early on dense pages |
+| Tesseract 5 hin+eng (local) | 12.8% | 51/86 | best classical engine; "286.47" read as "6286.47" |
+| RapidOCR PP-OCRv5 Devanagari (local) | 22.8% | 78/86 | drops whole lines |
+| Pixtral Large | 20.1% | 71/86 | |
+
+Even the best reader made two digit errors on this notice: "06.00" read as "08.00" (the bid deadline) and the
+fee slab "151 lakh" read as "161 lakh". On a tender those are the errors that matter, so the notice is read by
+three independent vision models, numbers are aligned by their neighbouring words, and every disagreement is
+put to a stronger model as a targeted question with the page image ("near '...सांय __ बजे', is it 06.00 or
+08.00?"). Both real errors were corrected, six false alarms were confirmed as the primary reading, and every
+correction is stored on the chunk (`meta.ocr_corrections`). Field-level check against 94 hand-read fields:
+primary 94/94, Llama 92/94, Gemma 70/94. The amounts also reconcile arithmetically (2% and 0.5% of Rs 286.47
+lakh are exactly the printed EMDs 5,72,940 and 1,43,235).
+
+Each tender segment gets an English twin (gpt-oss-120b) so English questions find Hindi text; a translation must
+contain exactly the Hindi original's numbers or it is retried. Citations point at the Hindi page.
+
+**Text-layer quality.** "Has a text layer" is not "has usable text": the PMGSY summary's layer drops conjuncts,
+the IS-code layers lost their spaces, and the contract's appendix is in a legacy font. `src/cosorag/textlayer.py`
+routes each page with three cheap signals (share of Devanagari words that start with a vowel sign, private-use
+and control characters, glued letter-only tokens, plus a Kruti Dev word list). Over the whole corpus
+(`scripts/check_text_layers.py`) it sends both PMGSY summary pages, 19 IS 456 pages and the 17 Kruti Dev pages of
+the contract to OCR, and none of the 183 pages of the two born-digital judgments.
+
+## 4. Retrieval
+
+* **Exact id path first.** "item 2.33.1" and "2.33.6" differ by one digit, "Clause 10C" and "10CC" by one
+  letter; embeddings blur exactly that. Ids in the query are looked up; a missing id is reported as missing
+  ("Item S-2.33.40 does not exist"), and an id that exists in several chapters is reported as ambiguous.
+* **BM25 + dense, fused with RRF.** BM25 (bm25s) uses a tokenizer that keeps `2.33.1`, `10cc` and
+  `pwd2425wsob17397` whole, folds Devanagari digits and Indian digit grouping (5,72,940 = 572940), and
+  normalises nukta and chandrabindu. Dense is multilingual-e5-small (118M, CPU). Brute-force cosine over 10k
+  vectors takes milliseconds, so no ANN index.
+* **Per-document lists.** The first error analysis showed the 32-chunk tender being drowned by 9,600 rate rows,
+  and tender questions answered from the CPWD contract. When a query names a document's vocabulary (tender,
+  bid, EMD, निविदा / rate, sqm / clause, Engineer-in-Charge) that document's own top-10 joins the fusion. For
+  reranking, the candidate pool is the fused top-20 plus every document's own top-3, so the cross-encoder, not
+  the corpus size, decides between a clause, a rate row and a tender condition (a question like "within how many
+  days must the agreement be signed?" carries no tender vocabulary at all).
+* **Neighbour expansion.** A clause can span pages; the next and previous chunk of a top clause are added.
+
+## 5. Grounded generation
+
+gpt-oss-120b (open-weight, Apache 2.0) on Bedrock in ap-south-1 (Mumbai). The model returns JSON: verbatim quotes
+first, then an answer with `[S#]` markers. Rules that came out of the error analysis: say whether a rate is a
+basic material rate (chapter G) or a complete item rate; if the asked size or variant is not listed, say so and
+label the closest item as different; questions about "this tender" are governed by the notice, not the CPWD
+contract; 1 crore = 100 lakh before applying slabs.
+
+A deterministic verifier then checks: each quote occurs in the source it is attributed to; each cited source
+exists; every number in the answer occurs in a cited source, in the question, or is one arithmetic step from
+them (a computed difference is checkable, an invented number is not). A failure triggers one retry with the
+reason; a remaining failure is shown to the user as a warning, never silently.
+
+## 6. Model adaptation: a fine-tuned cross-encoder as reranker and grounding gate
+
+**Why this and not something else.** The failure that matters most in rates and contracts is not "no answer",
+it is a confident answer with a real citation to the wrong row: asked for a Grading 2 WBM rate, the baseline
+answered Rs 1117 from the wet-mix-macadam row (correct: Rs 1112); asked for a 2.2 kW dewatering pump, it cited an
+electrical-chapter pump at Rs 46,149 (correct: Rs 88,983). The number verifier cannot catch this, because the
+wrong number really is in the cited chunk. A bi-encoder scores query and passage separately, so "20 mm" and
+"15 mm" rows look almost identical to it. A cross-encoder reads them together and can learn that the attribute
+mismatch is the whole point.
+
+**Data.** gpt-oss-120b (Apache 2.0, so the training data has clean provenance) wrote, for 1,876 chunks, queries
+the chunk answers (specific, paraphrase, Hindi or Hinglish for English text and English for Hindi text) and
+near-miss queries it does not answer (one attribute changed: 30 mm to 25 mm, Sqm to cubic metre, 4-pole to
+3-pole). Hard negatives were mined from the base hybrid retriever. Sibling rows (same parent, different size)
+are deliberately kept as hard negatives, since telling 15 mm from 20 mm is the point; only chunks that may
+legitimately answer the same query are excluded (the row's own parent "group" chunks, which list the row, and the
+other chunks of the same clause or tender condition). Vague queries ("one of these pumps") were dropped.
+Leakage guard: queries and negatives come only from TRAIN page blocks (fixed in `src/cosorag/splits.py` before
+any data was generated), so DEV and TEST passages are never seen in training, as positives or as negatives. A
+first training run had drawn negatives from the whole corpus; an independent code review caught it and the
+model was retrained.
+
+**Training.** `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` (118M, multilingual incl. Hindi), binary
+cross-entropy with positive weighting, word embeddings frozen (keeps the multilingual vocabulary, cheaper steps),
+one epoch on 9,519 pairs (2,173 positives, 6,519 mined hard negatives, 827 near-misses) in 91 minutes on a 4-core laptop CPU. The gate threshold is chosen on DEV pages only.
+
+**Result.** {{RERANKER_RESULTS}}
+
+**Alternatives I rejected.**
+* Fine-tuning the bi-encoder (e5-small). The textbook choice and cheap, but exact ids and BM25 already resolve
+  most lexical misses, so its gain mostly disappears inside the hybrid; and it cannot judge "does this passage
+  answer?", which is the decision I need.
+* LoRA on a small generator (Qwen3 0.6-1.7B) for cited answers and refusals. Distils a 120B model into a much
+  weaker one; about 17-25 h on this CPU.
+* Hindi OCR post-correction (ByT5). Published gains are 1.2-1.5 chrF++ and do not transfer across OCR engines;
+  multi-reader voting fixed the errors that mattered.
+* An answerability classifier on retrieval features. Cheaper, but the cross-encoder gives the same signal while
+  also improving ranking.
+
+## 7. Evaluation
+
+**Gold set.** 96 questions written from the source pages before the system was run (32 contract, 36 rates,
+28 tender), each with the answer, key facts, gold page and locator, and a question type (lookup, interpretation,
+multi-hop, exact rate, child row, ditto, note modifier, cross-lingual, Hindi, Hinglish, table, conditional,
+unanswerable, near-miss, false premise). They were drafted with an AI assistant directly from the pages and every
+answer was re-checked against the page by a second pass. I ran one round of error analysis on this set and fixed
+general issues (document routing, prompt rules, verifier arithmetic), so it is a development set. The clean
+estimate is a **blind set of 30 questions** written by a fresh pass on held-out pages after the code freeze and
+run once (`evals/gold_blind/`).
+
+**Metrics.** Correctness by an LLM judge (Claude Sonnet 4.6, a different family from the generator, sees the
+gold answer, not the sources), plus a deterministic lower bound (every key fact found, format-tolerant for dates
+and units). Citation hit: a cited chunk carries the gold clause or rate item (page level for the tender, which
+has no finer locator). Negatives handled: on unanswerable, near-miss and false-premise questions, the judge
+confirms the answer declined or rejected the premise. Over-refusal: the model declined an answerable question.
+Share of answers with a number that is neither in a cited source nor derivable. Retrieval Hit@1/5 and MRR@10 at
+locator level, per retrieval mode. 95% bootstrap intervals everywhere; paired bootstrap for before/after.
+
+{{EVAL_RESULTS}}
+
+## 8. Production and scale
+
+* **Ingestion as a pipeline, not a script.** Content-hash every page; re-run only changed pages; per-page routing
+  (native text, re-OCR, multi-reader for scans with numbers); store provenance and every OCR correction.
+* **Storage.** At 10k chunks a numpy matrix is right. At 100k-10M: Postgres + pgvector (HNSW) with BM25 in the
+  same database or OpenSearch, filtered by project, document type, version and access rights. Item and clause ids
+  go into relational tables, not only into vectors.
+* **Versions and amendments.** BSRs are revised yearly and contracts carry corrigenda and Schedule F values per
+  contract; every chunk needs `effective_from` and a supersedes link, and answers must say which version they used.
+* **Latency and cost.** Warm query: retrieval ~0.1 s, reranking ~1-2 s on CPU (a GPU or ONNX int8 brings it to
+  ~50 ms), generation ~2-4 s. gpt-oss-120b costs about $0.15/$0.62 per million tokens, i.e. under Rs 0.1 per
+  question. Mumbai hosting keeps tender data in India.
+* **Quality gates.** The gold and blind sets become a CI gate (no deploy if correctness, citation hit or refusal
+  recall drops); every query is traced (retrieved ids, scores, gate score, verifier result); low gate scores and
+  verifier warnings go to a human review queue; user feedback becomes new eval items.
+* **Security.** Documents are untrusted input: a malicious PDF can contain instructions. The generator only quotes
+  and summarises sources, cannot call tools, and every claim is checked against source text.
+
+## 9. Known limitations
+
+What breaks today, roughly in the order I would fix it:
+
+1. **Note scopes are not linked to items.** A note such as "add 15% if concrete is mixed without a mechanical
+   mixer" or "add 5% for grade AA pipes" is its own chunk; the answer is only right if retrieval brings the note
+   along with the rate. Fix: parse a note's scope ("items 1.1 to 1.7") and attach it to those items' records.
+2. **Schedule of rates edge layouts.** About 3% of rows hold unnumbered variants and keep several rates in one
+   record; horticulture rate ranges ("70.00 to 100.00"), multi-column hire-charge tables and a shifted unit column
+   on some electrical pages are the places where the two parsers disagree. Defects in the source itself (the
+   same material at two rates, reused item numbers, a Rs 0.00 rate) are reproduced, not resolved.
+3. **No boxes on the scan.** The vision-model transcription has no coordinates, so tender citations point to the
+   page and condition, not a highlighted box. Fix: align the text to a layout OCR pass that has boxes.
+4. **Schedule F is blank.** The contract template leaves contract-specific values (who decides compensation,
+   the deviation limit, the escalation threshold) empty; the system says so, but a real deployment must ingest
+   each contract's own Schedule F.
+5. **Evaluation scale.** 96 development questions and 30 blind ones give intervals of about plus or minus 8 and 15
+   points. The gold sets were drafted with an AI assistant from the pages and checked against them, not written
+   by a contracts or estimating professional, and correctness is graded by an LLM judge.
+6. **Routing is keyword-based.** Three documents make keyword cues enough; with hundreds of documents this needs
+   metadata filters and a learned router.
+7. **CPU latency.** The cross-encoder adds about 1-3 s per question on a laptop CPU (int8 ONNX or a GPU brings it
+   to tens of milliseconds).
+8. **One closed model in ingestion.** The primary tender reading uses Claude Sonnet 4.6 (best measured CER); the
+   open-weight readers were close on digits (Llama 4 Maverick 92/94 fields) and are used for the cross-check, so
+   a fully open pipeline is a configuration change with a measured cost.
+
+## 10. With more time
+
+1. **Delay-claims workflow.** Add the two arbitration judgments with paragraph-level citations (speaker-tagged,
+   since half of a judgment is quoted precedent) so a question can run from Clause 2 / Clause 5 of the contract to
+   how a court treated a similar claim. This is the workflow closest to COSO's delay-analysis and claims modules.
+2. **Note scopes and versions.** Attach schedule-of-rates notes to the items they modify, and carry
+   `effective_from` / supersedes links for revised schedules, corrigenda and each contract's Schedule F.
+3. **A professional test set.** 50 questions written by a quantity surveyor and a contracts manager, used to
+   calibrate the judge (agreement, kappa) and to replace the assistant-drafted gold set as the main benchmark.
+4. **Gate policy.** Today the gate tells the generator to be strict; try it as a hard abstain plus a human-review
+   queue and measure the trade-off between refusal recall and over-refusal on a larger negative set.
+5. **Cheaper and faster.** int8 ONNX for the cross-encoder (CPU latency from ~1 s to tens of ms), and a second
+   adaptation experiment on the embedder to see whether the two gains add up.

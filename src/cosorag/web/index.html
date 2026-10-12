@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Construction Docs Q&amp;A</title>
+<style>
+  :root { --ink:#1d1f21; --mute:#6b6f76; --line:#e4e2dc; --bg:#faf9f6; --card:#fff; --acc:#c2410c; --ok:#15803d; --warn:#b45309; }
+  * { box-sizing: border-box; }
+  body { margin:0; font: 15px/1.55 system-ui, -apple-system, "Segoe UI", "Noto Sans Devanagari", sans-serif; color:var(--ink); background:var(--bg); }
+  main { max-width: 1180px; margin: 0 auto; padding: 28px 20px 60px; display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 24px; }
+  header { grid-column: 1 / -1; }
+  h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--mute); font-size: 13.5px; }
+  form { display:flex; gap:8px; margin-top: 16px; }
+  input[type=text] { flex:1; padding: 11px 13px; font-size: 15px; border:1px solid var(--line); border-radius: 8px; background: var(--card); }
+  button { padding: 0 16px; border:0; border-radius: 8px; background: var(--ink); color: #fff; font-weight: 600; cursor: pointer; }
+  button:disabled { opacity: .5; }
+  .examples { margin-top: 10px; display:flex; flex-wrap: wrap; gap: 6px; }
+  .examples a { font-size: 12.5px; color: var(--mute); border:1px solid var(--line); border-radius: 999px; padding: 3px 10px; text-decoration: none; background: var(--card); cursor: pointer; }
+  .card { background: var(--card); border:1px solid var(--line); border-radius: 10px; padding: 18px 20px; }
+  .status { font-size: 12.5px; font-weight: 600; margin-bottom: 8px; }
+  .status.ok { color: var(--ok); } .status.warn { color: var(--warn); } .status.na { color: #1d4ed8; }
+  .answer { white-space: pre-wrap; }
+  .cites { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+  .cite { padding: 8px 0; border-bottom: 1px dashed var(--line); cursor: pointer; }
+  .cite:last-child { border-bottom: 0; }
+  .cite b { color: var(--acc); }
+  .cite .q { color: var(--mute); font-size: 13px; margin-top: 2px; }
+  .meta { color: var(--mute); font-size: 12px; margin-top: 12px; }
+  .viewer img { width: 100%; border:1px solid var(--line); border-radius: 6px; }
+  .viewer .hint { color: var(--mute); font-size: 13px; }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Construction documents Q&amp;A</h1>
+    <div class="sub">CPWD GCC 2020 contract · RHB Schedule of Rates 2024 · Rajasthan PWD tender 68/2024-25 (Hindi scan). Every answer cites a clause, item row or tender condition.</div>
+    <form id="f"><input id="q" type="text" placeholder="Ask in English or Hindi" autocomplete="off"><button id="b">Ask</button></form>
+    <div class="examples" id="ex"></div>
+  </header>
+  <section class="card" id="out"><div class="sub">Ask a question to see a cited answer.</div></section>
+  <section class="card viewer" id="view"><div class="hint">Click a citation to see the source page, with the cited region highlighted.</div></section>
+</main>
+<script>
+const EX = ["What is the maximum compensation for delay?", "Rate of a 15 mm CP brass pillar cock?",
+  "Rate of a 20 mm CP brass pillar cock?", "What is the EMD for the Yatri Niwas tender?",
+  "इस निविदा का UBN नंबर क्या है?", "What does Clause 47 say about bonus for early completion?"];
+const ex = document.getElementById("ex");
+EX.forEach(t => { const a = document.createElement("a"); a.textContent = t; a.onclick = () => { q.value = t; ask(); }; ex.appendChild(a); });
+const q = document.getElementById("q"), out = document.getElementById("out"), view = document.getElementById("view"), b = document.getElementById("b");
+document.getElementById("f").onsubmit = e => { e.preventDefault(); ask(); };
+const esc = s => (s || "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+async function ask() {
+  if (!q.value.trim()) return;
+  b.disabled = true; out.innerHTML = '<div class="sub">Searching 10,025 passages and checking the answer...</div>';
+  try {
+    const res = await fetch("/ask", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({question: q.value})});
+    if (!res.ok) throw new Error(`server returned ${res.status}`);
+    const r = await res.json();
+    const st = !r.answerable ? ['na', 'Not answerable from these documents'] : (r.checks.ok ? ['ok', 'Verified against the cited sources'] : (Object.keys(r.checks).length ? ['warn', 'Check warnings: see below'] : ['na', 'Retrieval only (no model configured)']));
+    let h = (r.notice ? `<div class="status warn">${esc(r.notice)}</div>` : "") + `<div class="status ${st[0]}">${st[1]}</div><div class="answer">${esc(r.answer)}</div>`;
+    if (r.missing_ids.length) h += `<div class="meta">${esc(r.missing_ids.join(", "))}: not in the indexed documents</div>`;
+    if (r.checks.unsupported_numbers && r.checks.unsupported_numbers.length) h += `<div class="meta" style="color:var(--warn)">Numbers not found in the cited sources: ${esc(r.checks.unsupported_numbers.join(", "))}</div>`;
+    h += '<div class="cites">' + r.citations.map(c => `<div class="cite" data-id="${esc(c.chunk_id)}" data-v="${c.viewable}"><b>[S${c.n}]</b> ${esc(c.cite)}${c.quote ? `<div class="q">"${esc(c.quote)}"</div>` : ""}</div>`).join("") + '</div>';
+    const t = r.timings || {};
+    h += `<div class="meta">${esc(r.model || "")} · retrieve ${t.retrieve_s ?? 0}s · rerank ${t.rerank_s ?? 0}s · generate ${t.generate_s ?? 0}s${r.gate ? " · gate: " + esc(r.gate) : ""}</div>`;
+    out.innerHTML = h;
+    out.querySelectorAll(".cite").forEach(el => el.onclick = () => show(el.dataset.id, el.dataset.v === "true"));
+    const first = out.querySelector(".cite"); if (first) first.click();
+  } catch (e) { out.innerHTML = `<div class="status warn">Error: ${esc(String(e))}</div>`; }
+  b.disabled = false;
+}
+function show(id, ok) {
+  view.innerHTML = ok ? `<img alt="cited page" src="/page/${encodeURIComponent(id)}">`
+    : '<div class="hint">Source PDFs not downloaded. Run scripts/download_corpus.py to view pages.</div>';
+}
+</script>
+</body>
+</html>

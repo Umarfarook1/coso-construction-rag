@@ -1,0 +1,43 @@
+[project]
+name = "cosorag"
+version = "0.1.0"
+description = "Cited question answering over Indian construction documents (contract, schedule of rates, Hindi tender scan) with a domain-adapted retriever."
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "pymupdf>=1.24",
+    "numpy>=1.26",
+    "bm25s>=0.2.6",
+    "sentence-transformers>=4.1",
+    "torch>=2.3",
+    "boto3>=1.35",
+    "openai>=1.40",
+    "rich>=13.7",
+    "pyyaml>=6.0",
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+]
+
+[project.optional-dependencies]
+train = ["datasets>=2.19", "accelerate>=0.30"]
+
+[project.scripts]
+cosorag = "cosorag.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cosorag"]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true

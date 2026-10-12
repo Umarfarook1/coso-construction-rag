@@ -1,0 +1,14 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+data/raw/
+data/cache/
+models/
+runs/tmp/
+*.log
+runs/views/
+runs/smoke/
+adapt/data/pairs_*.jsonl
+dist/
+.pytest_cache/
