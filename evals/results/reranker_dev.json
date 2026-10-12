@@ -1,0 +1,35 @@
+{
+ "split": "dev",
+ "n_pos": 300,
+ "n_near_miss": 150,
+ "skipped_stale_ids": 0,
+ "ranking": {
+  "hybrid": {
+   "hit1": 0.423,
+   "mrr10": 0.526
+  },
+  "base": {
+   "hit1": 0.583,
+   "mrr10": 0.645
+  },
+  "ft": {
+   "hit1": 0.623,
+   "mrr10": 0.687
+  }
+ },
+ "gate": {
+  "base": {
+   "auroc_pair": 0.474,
+   "auroc_top": 0.43
+  },
+  "ft": {
+   "auroc_pair": 0.862,
+   "auroc_top": 0.829
+  }
+ },
+ "gate_threshold": {
+  "threshold": 0.7,
+  "balanced_accuracy_dev": 0.771,
+  "chosen_on": "dev"
+ }
+}

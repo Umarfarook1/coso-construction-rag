@@ -1,0 +1,9 @@
+{
+  "llm": "bedrock:openai.gpt-oss-120b-1:0",
+  "rerank": true,
+  "reranker": null,
+  "gate_threshold": null,
+  "mode": "hybrid",
+  "split": "all",
+  "n": 30
+}
