@@ -7,7 +7,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 RAW_DIR = ROOT / "data" / "raw" / "RAG-Interview-Test-Corpus"
 PROCESSED_DIR = ROOT / "data" / "processed"
-CACHE_DIR = ROOT / "data" / "cache"
+# writable locations; a read-only deployment (e.g. a serverless function) points these at /tmp
+CACHE_DIR = Path(os.environ.get("COSORAG_CACHE_DIR") or ROOT / "data" / "cache")
+VIEWS_DIR = Path(os.environ.get("COSORAG_VIEWS_DIR") or ROOT / "runs" / "views")
 INDEX_DIR = ROOT / "data" / "index"
 MODELS_DIR = ROOT / "models"
 

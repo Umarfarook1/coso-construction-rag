@@ -83,7 +83,10 @@ def main(argv: list[str] | None = None) -> None:
         chunks = {c.id: c for c in load_chunks(PROCESSED_DIR / "chunks.jsonl.gz")}
         if a.chunk_id not in chunks:
             raise SystemExit(f"unknown chunk id {a.chunk_id}")
-        print(render(chunks[a.chunk_id]))
+        try:
+            print(render(chunks[a.chunk_id]))
+        except FileNotFoundError as e:
+            raise SystemExit(str(e)) from None
         return
     if a.cmd == "index":
         from .index import Index

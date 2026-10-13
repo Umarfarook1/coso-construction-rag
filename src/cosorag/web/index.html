@@ -30,6 +30,9 @@
   .meta { color: var(--mute); font-size: 12px; margin-top: 12px; }
   .viewer img { width: 100%; border:1px solid var(--line); border-radius: 6px; }
   .viewer .hint { color: var(--mute); font-size: 13px; }
+  .gatebox { display:none; margin-top: 10px; gap: 8px; align-items: center; font-size: 13.5px; color: var(--mute); }
+  .gatebox input { width: 180px; padding: 7px 10px; border:1px solid var(--line); border-radius: 8px; font-size: 14px; }
+  .gatebox button { padding: 7px 12px; }
   @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -40,6 +43,7 @@
     <div class="sub">CPWD GCC 2020 contract · RHB Schedule of Rates 2024 · Rajasthan PWD tender 68/2024-25 (Hindi scan). Every answer cites a clause, item row or tender condition.</div>
     <form id="f"><input id="q" type="text" placeholder="Ask in English or Hindi" autocomplete="off"><button id="b">Ask</button></form>
     <div class="examples" id="ex"></div>
+    <form class="gatebox" id="gate"><span>This demo needs an access code:</span><input id="code" type="password" autocomplete="off"><button>Save</button></form>
   </header>
   <section class="card" id="out"><div class="sub">Ask a question to see a cited answer.</div></section>
   <section class="card viewer" id="view"><div class="hint">Click a citation to see the source page, with the cited region highlighted.</div></section>
@@ -53,11 +57,24 @@ EX.forEach(t => { const a = document.createElement("a"); a.textContent = t; a.on
 const q = document.getElementById("q"), out = document.getElementById("out"), view = document.getElementById("view"), b = document.getElementById("b");
 document.getElementById("f").onsubmit = e => { e.preventDefault(); ask(); };
 const esc = s => (s || "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+// access code: from a shared link (?code=...), else remembered in this browser; sent as a header, never in URLs
+let code = "";
+try { code = localStorage.getItem("cosorag-code") || ""; } catch (e) {}
+const fromLink = new URLSearchParams(location.search).get("code");
+if (fromLink) { code = fromLink; history.replaceState(null, "", location.pathname); }
+const remember = c => { code = c; try { localStorage.setItem("cosorag-code", c); } catch (e) {} };
+if (fromLink) remember(fromLink);
+const gate = document.getElementById("gate");
+gate.onsubmit = e => { e.preventDefault(); remember(document.getElementById("code").value.trim()); gate.style.display = "none"; if (q.value.trim()) ask(); };
+const hdrs = extra => Object.assign(code ? {"x-access-code": code} : {}, extra || {});
+let pageUrl = null;
 async function ask() {
   if (!q.value.trim()) return;
-  b.disabled = true; out.innerHTML = '<div class="sub">Searching 10,025 passages and checking the answer...</div>';
+  b.disabled = true; out.innerHTML = '<div class="sub">Searching 10,025 passages and checking the answer... (the first question after a quiet spell also loads the models, up to a minute)</div>';
   try {
-    const res = await fetch("/ask", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({question: q.value})});
+    const res = await fetch("/ask", {method: "POST", headers: hdrs({"content-type": "application/json"}), body: JSON.stringify({question: q.value})});
+    if (res.status === 401) { gate.style.display = "flex"; out.innerHTML = '<div class="status warn">Enter the access code to ask a question.</div>'; b.disabled = false; return; }
+    if (res.status === 429) throw new Error("the daily question limit for this demo is reached; please try again tomorrow");
     if (!res.ok) throw new Error(`server returned ${res.status}`);
     const r = await res.json();
     const st = !r.answerable ? ['na', 'Not answerable from these documents'] : (r.checks.ok ? ['ok', 'Verified against the cited sources'] : (Object.keys(r.checks).length ? ['warn', 'Check warnings: see below'] : ['na', 'Retrieval only (no model configured)']));
@@ -73,9 +90,16 @@ async function ask() {
   } catch (e) { out.innerHTML = `<div class="status warn">Error: ${esc(String(e))}</div>`; }
   b.disabled = false;
 }
-function show(id, ok) {
-  view.innerHTML = ok ? `<img alt="cited page" src="/page/${encodeURIComponent(id)}">`
-    : '<div class="hint">Source PDFs not downloaded. Run scripts/download_corpus.py to view pages.</div>';
+async function show(id, ok) {
+  if (!ok) { view.innerHTML = '<div class="hint">Source PDFs not downloaded. Run scripts/download_corpus.py to view pages.</div>'; return; }
+  view.innerHTML = '<div class="hint">Rendering the page...</div>';
+  try {
+    const res = await fetch(`/page/${encodeURIComponent(id)}`, {headers: hdrs()});
+    if (!res.ok) throw new Error(res.status === 404 ? "this page is not available here" : `server returned ${res.status}`);
+    if (pageUrl) URL.revokeObjectURL(pageUrl);
+    pageUrl = URL.createObjectURL(await res.blob());
+    view.innerHTML = `<img alt="cited page with the cited region boxed" src="${pageUrl}">`;
+  } catch (e) { view.innerHTML = `<div class="hint">Could not load the page: ${esc(String(e.message || e))}</div>`; }
 }
 </script>
 </body>

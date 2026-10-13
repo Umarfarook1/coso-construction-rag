@@ -107,10 +107,13 @@ class LLM:
         reply.seconds = round(time.time() - t0, 2)
         if truncated or not reply.text:   # never cache a cut-off or empty reply
             return reply
-        path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = path.with_suffix(".tmp")
-        tmp.write_text(json.dumps({k: v for k, v in reply.__dict__.items() if k != "cached"}, ensure_ascii=False), encoding="utf-8")
-        tmp.replace(path)
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            tmp = path.with_suffix(".tmp")
+            tmp.write_text(json.dumps({k: v for k, v in reply.__dict__.items() if k != "cached"}, ensure_ascii=False), encoding="utf-8")
+            tmp.replace(path)
+        except OSError:   # read-only or full disk: the answer is still good, it just is not cached
+            pass
         return reply
 
 

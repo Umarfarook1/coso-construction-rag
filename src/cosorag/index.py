@@ -33,7 +33,8 @@ def load_embedder(name: str):
         from sentence_transformers import SentenceTransformer
 
         torch.set_num_threads(max(1, (os.cpu_count() or 4) // 2))
-        _MODELS[name] = SentenceTransformer(name, device="cpu")
+        # COSORAG_EMBEDDER_DIR: a local copy of the same model (offline deployments); the vectors stay keyed by name
+        _MODELS[name] = SentenceTransformer(os.environ.get("COSORAG_EMBEDDER_DIR") or name, device="cpu")
     return _MODELS[name]
 
 

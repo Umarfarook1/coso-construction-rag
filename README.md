@@ -56,6 +56,10 @@ score flags answers for review when no passage looks like it answers.
 
 Full tables: [evals/RESULTS.md](evals/RESULTS.md). Method and caveats: [DESIGN.md section 7](DESIGN.md#7-evaluation).
 
+**Live demo:** https://coso-rag-web.vercel.app (the access code is in the submission email; it keeps the paid
+model behind a gate). The same web view as `cosorag serve`, as a Vercel function in Mumbai; the first question
+after a quiet spell loads the models and takes about 20 s. How it is built: [deploy/vercel](deploy/vercel/README.md).
+
 ## Setup
 
 Python 3.11 or 3.12 and [uv](https://docs.astral.sh/uv/). CPU only; about 1.5 GB of disk for the environment and models.
@@ -124,6 +128,7 @@ uv run python adapt/eval_reranker.py --split dev --write-gate
 | `src/cosorag/answer.py` | prompt, quote-then-answer, deterministic verifier |
 | `src/cosorag/show.py`, `serve.py` | page render with the cited region highlighted, local web view |
 | `scripts/` | corpus download, tender OCR, model download/packaging, `run_all_evals.sh` (the exact evaluation procedure) |
+| `deploy/vercel/` | the web view as a Vercel function: staging, build-time model fetch, access code |
 | `adapt/` | synthetic data, pair mining, training, before/after evaluation |
 | `evals/` | gold set, blind set, harness, judge, OCR evaluation, results |
 | `data/processed/` | chunks, OCR readings, translations (committed) |
