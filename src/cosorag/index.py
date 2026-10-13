@@ -38,8 +38,30 @@ def load_embedder(name: str):
     return _MODELS[name]
 
 
+def _bedrock_embed(texts: list[str], model_id: str, kind: str) -> np.ndarray:
+    """Cohere Embed Multilingual v3 on Bedrock: the live demo's embedder, so the deployment carries no model
+    weights. 96 texts per call; long passages are truncated at the end, like the local model's 256-token cut."""
+    import concurrent.futures as cf
+
+    import boto3
+
+    client = boto3.client("bedrock-runtime", region_name=os.environ.get("COSORAG_EMBED_REGION", "ap-south-1"))
+
+    def call(batch: list[str]) -> list[list[float]]:
+        body = {"texts": batch, "input_type": "search_query" if kind == "query" else "search_document", "truncate": "END"}
+        return json.loads(client.invoke_model(modelId=model_id, body=json.dumps(body))["body"].read())["embeddings"]
+
+    texts = [t[:2000] for t in texts]   # the API's per-text character limit; e5 kept fewer words than this anyway
+    batches = [texts[i:i + 96] for i in range(0, len(texts), 96)]
+    with cf.ThreadPoolExecutor(4) as ex:
+        out = np.asarray([v for vs in ex.map(call, batches) for v in vs], dtype=np.float32)
+    return out / np.linalg.norm(out, axis=1, keepdims=True)
+
+
 def embed(texts: list[str], model_name: str, kind: str, batch_size: int = 32, show: bool = False) -> np.ndarray:
-    """kind is 'query' or 'passage' (e5 prefixes)."""
+    """kind is 'query' or 'passage' (e5 prefixes). A 'bedrock:<model-id>' name embeds through the Bedrock API."""
+    if model_name.startswith("bedrock:"):
+        return _bedrock_embed(texts, model_name.split(":", 1)[1], kind)
     m = load_embedder(model_name)
     m.max_seq_length = 256 if kind == "passage" else 64
     return m.encode([f"{kind}: {t}" for t in texts], batch_size=batch_size, normalize_embeddings=True,
@@ -61,7 +83,7 @@ class Index:
     # ---- persistence -------------------------------------------------------------------------
     @staticmethod
     def vec_path(model_name: str) -> Path:
-        tag = Path(model_name).name if os.path.exists(model_name) else model_name.replace("/", "__")
+        tag = Path(model_name).name if os.path.exists(model_name) else model_name.replace("/", "__").replace(":", "__")
         return INDEX_DIR / f"vectors__{tag}.npy"
 
     @classmethod

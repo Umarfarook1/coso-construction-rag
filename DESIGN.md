@@ -289,6 +289,58 @@ Retrieval on the 84 answerable gold questions (locator level: the right clause, 
   contract's 12 months, though the notice states none.
 * *Partial answers*: a second condition omitted, an office named wrongly in a long condition.
 
+### Answer writers compared, and the Bedrock-only live demo
+
+With retrieval, the fine-tuned reranker and the verifier fixed, I swapped only the model that writes the answer
+(`evals/generators.py`, gold set):
+
+| writer | gold, judged correct | blind (run once) |
+|---|---|---|
+| Claude Opus 5.5 | 92.7% | |
+| Claude Sonnet 5.5 | 91.7% | 96.7% |
+| Claude Haiku 5.5 | 89.1% | |
+| DeepSeek V3 | 88.0% | |
+| Qwen3 235B | 87.5% | |
+| gpt-oss-120b (first submission) | 84.9% | 90.0% |
+| gpt-oss-20b | 83.9% | |
+
+Most remaining Sonnet misses are the retrieval and parsing failures listed above (a rate row that never reaches the
+context, a lettered variant whose rate sits in its sibling's record), so a stronger writer does not fix them.
+
+The live demo runs Claude Sonnet 5.5 and replaces the two local models with Bedrock-hosted ones (Cohere Embed
+Multilingual v3 for query vectors, Cohere Rerank 3.5), because the fine-tuned reranker needs PyTorch and about
+2 GB of memory, more than the free host gives. That configuration scores 92.7% on gold and 96.7% on blind, with
+every citation on target in the blind set. It has no review flag: no threshold has been calibrated for the hosted
+reranker. Every stage's metrics for all configurations: [evals/METRICS.md](evals/METRICS.md).
+
+The hosted reranker also gives the fine-tuned one an honest yardstick (84 answerable gold questions, right passage
+first): on the e5 search, Cohere Rerank 3.5 reaches 0.881 against 0.833 for the fine-tuned 118M model; on the Cohere
+search the fine-tuned model is ahead on that measure (0.869 against 0.857) and behind on MRR (0.908 against 0.915) and
+nDCG@10 (0.846 against 0.871). A model trained in 91 minutes on a laptop CPU stays close to a much larger commercial
+reranker. The web view (How it works, Fine-tuning next) lists what a GPU round would change.
+
+### Input guardrail: routing before retrieval
+
+The first live demo sent every message through retrieval, so "hi" came back with citations to a public address system's
+hire charges: the writer had been handed eight unrelated rate rows and did its best with them. The chat now routes each
+message before any search (`src/cosorag/guard.py`):
+
+* **Four routes.** Document question (searched), greeting or small talk, a question about the assistant, and off-topic,
+  which also covers attempts to change or reveal the instructions. Only the first reaches retrieval.
+* **Fixed replies.** The router only picks the route; the replies for the other three are text written in the code,
+  in English and Hindi. No model writes anything outside the cited-evidence path, so the bot cannot be talked into
+  general knowledge or a made-up rate.
+* **Asymmetric errors.** Routing a real question away hides an answer; searching a greeting wastes a second. The
+  prompt says "when in doubt, docs", and an unparseable router reply is treated as a document question.
+* **Cost and speed.** Plain greetings match a list without a model call. Everything else goes to Claude Haiku 5.5
+  (median 1.05 s); on a first question it runs alongside the search, so it adds no wait; for a follow-up the same call
+  also rewrites the question, replacing the separate rewrite call.
+* **Measured.** `evals/router_eval.py`: 56 of 56 labelled messages routed correctly (greetings, Hindi, prompt
+  injections, and tricky document questions such as "EMD?", "pillar cock rate", a greeting followed by a question, a
+  false premise); 96 of 96 gold and 30 of 30 blind questions routed to the documents (blind reported as a count only);
+  4 of 4 follow-up rewrites kept the subject. The labelled set is mine and small, and I changed the prompt once after
+  the first run sent "how are you?" to the documents, so treat it as a development result.
+
 ## 8. Production and scale
 
 * **Ingestion as a pipeline, not a script.** Content-hash every page; re-run only changed pages; per-page routing

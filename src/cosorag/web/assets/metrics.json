@@ -1,0 +1,905 @@
+{
+ "retrieval": [
+  {
+   "key": "bm25",
+   "label": "BM25 keyword search",
+   "stage": "retrieval",
+   "n": 84,
+   "hit1": 0.738,
+   "hit3": 0.845,
+   "hit5": 0.869,
+   "hit8": 0.905,
+   "hit10": 0.917,
+   "recall1": 0.635,
+   "recall5": 0.819,
+   "recall8": 0.875,
+   "recall10": 0.887,
+   "precision1": 0.738,
+   "precision5": 0.348,
+   "precision8": 0.265,
+   "mrr10": 0.798,
+   "ndcg10": 0.774,
+   "page_hit5": 0.893,
+   "by_doc_hit5": {
+    "gcc": 0.893,
+    "bsr": 0.903,
+    "nit": 0.8
+   }
+  },
+  {
+   "key": "dense-e5",
+   "label": "Dense: multilingual-e5-small",
+   "stage": "retrieval",
+   "n": 84,
+   "hit1": 0.667,
+   "hit3": 0.81,
+   "hit5": 0.833,
+   "hit8": 0.881,
+   "hit10": 0.893,
+   "recall1": 0.552,
+   "recall5": 0.768,
+   "recall8": 0.837,
+   "recall10": 0.849,
+   "precision1": 0.667,
+   "precision5": 0.317,
+   "precision8": 0.25,
+   "mrr10": 0.748,
+   "ndcg10": 0.722,
+   "page_hit5": 0.857,
+   "by_doc_hit5": {
+    "gcc": 0.964,
+    "bsr": 0.71,
+    "nit": 0.84
+   }
+  },
+  {
+   "key": "dense-cohere",
+   "label": "Dense: Cohere Embed Multilingual v3",
+   "stage": "retrieval",
+   "n": 84,
+   "hit1": 0.714,
+   "hit3": 0.833,
+   "hit5": 0.881,
+   "hit8": 0.893,
+   "hit10": 0.905,
+   "recall1": 0.591,
+   "recall5": 0.81,
+   "recall8": 0.827,
+   "recall10": 0.839,
+   "precision1": 0.714,
+   "precision5": 0.357,
+   "precision8": 0.278,
+   "mrr10": 0.78,
+   "ndcg10": 0.728,
+   "page_hit5": 0.905,
+   "by_doc_hit5": {
+    "gcc": 0.964,
+    "bsr": 0.806,
+    "nit": 0.88
+   }
+  },
+  {
+   "key": "hybrid-e5",
+   "label": "Hybrid (e5): BM25 + dense + exact ids + per-document lists",
+   "stage": "retrieval",
+   "n": 84,
+   "hit1": 0.786,
+   "hit3": 0.94,
+   "hit5": 0.952,
+   "hit8": 0.976,
+   "hit10": 0.976,
+   "recall1": 0.661,
+   "recall5": 0.895,
+   "recall8": 0.942,
+   "recall10": 0.948,
+   "precision1": 0.786,
+   "precision5": 0.405,
+   "precision8": 0.312,
+   "mrr10": 0.855,
+   "ndcg10": 0.827,
+   "page_hit5": 0.976,
+   "by_doc_hit5": {
+    "gcc": 0.964,
+    "bsr": 0.935,
+    "nit": 0.96
+   }
+  },
+  {
+   "key": "hybrid-cohere",
+   "label": "Hybrid (Cohere): BM25 + dense + exact ids + per-document lists",
+   "stage": "retrieval",
+   "n": 84,
+   "hit1": 0.786,
+   "hit3": 0.881,
+   "hit5": 0.952,
+   "hit8": 0.976,
+   "hit10": 0.976,
+   "recall1": 0.669,
+   "recall5": 0.889,
+   "recall8": 0.927,
+   "recall10": 0.933,
+   "precision1": 0.786,
+   "precision5": 0.393,
+   "precision8": 0.312,
+   "mrr10": 0.848,
+   "ndcg10": 0.816,
+   "page_hit5": 0.976,
+   "by_doc_hit5": {
+    "gcc": 0.964,
+    "bsr": 0.935,
+    "nit": 0.96
+   }
+  },
+  {
+   "key": "e5-orig-sorted",
+   "label": "Hybrid (e5) + original cross-encoder, re-sorted",
+   "stage": "rerank",
+   "n": 84,
+   "hit1": 0.774,
+   "hit3": 0.929,
+   "hit5": 0.94,
+   "hit8": 0.952,
+   "hit10": 0.976,
+   "recall1": 0.649,
+   "recall5": 0.881,
+   "recall8": 0.917,
+   "recall10": 0.94,
+   "precision1": 0.774,
+   "precision5": 0.379,
+   "precision8": 0.292,
+   "mrr10": 0.856,
+   "ndcg10": 0.818,
+   "page_hit5": 0.964,
+   "by_doc_hit5": {
+    "gcc": 1.0,
+    "bsr": 0.839,
+    "nit": 1.0
+   }
+  },
+  {
+   "key": "e5-orig-fused",
+   "label": "Hybrid (e5) + original cross-encoder, fused",
+   "stage": "rerank",
+   "n": 84,
+   "hit1": 0.821,
+   "hit3": 0.976,
+   "hit5": 0.976,
+   "hit8": 0.976,
+   "hit10": 0.976,
+   "recall1": 0.69,
+   "recall5": 0.929,
+   "recall8": 0.942,
+   "recall10": 0.946,
+   "precision1": 0.821,
+   "precision5": 0.41,
+   "precision8": 0.31,
+   "mrr10": 0.893,
+   "ndcg10": 0.851,
+   "page_hit5": 0.988,
+   "by_doc_hit5": {
+    "gcc": 1.0,
+    "bsr": 0.935,
+    "nit": 1.0
+   }
+  },
+  {
+   "key": "e5-ft-sorted",
+   "label": "Hybrid (e5) + fine-tuned cross-encoder, re-sorted",
+   "stage": "rerank",
+   "n": 84,
+   "hit1": 0.75,
+   "hit3": 0.917,
+   "hit5": 0.929,
+   "hit8": 0.952,
+   "hit10": 0.952,
+   "recall1": 0.649,
+   "recall5": 0.863,
+   "recall8": 0.901,
+   "recall10": 0.913,
+   "precision1": 0.75,
+   "precision5": 0.35,
+   "precision8": 0.265,
+   "mrr10": 0.829,
+   "ndcg10": 0.788,
+   "page_hit5": 0.94,
+   "by_doc_hit5": {
+    "gcc": 0.964,
+    "bsr": 0.871,
+    "nit": 0.96
+   }
+  },
+  {
+   "key": "e5-ft-fused",
+   "label": "Hybrid (e5) + fine-tuned cross-encoder, fused (evaluated system)",
+   "stage": "rerank",
+   "n": 84,
+   "hit1": 0.833,
+   "hit3": 0.94,
+   "hit5": 0.952,
+   "hit8": 0.976,
+   "hit10": 0.976,
+   "recall1": 0.714,
+   "recall5": 0.901,
+   "recall8": 0.937,
+   "recall10": 0.942,
+   "precision1": 0.833,
+   "precision5": 0.4,
+   "precision8": 0.31,
+   "mrr10": 0.888,
+   "ndcg10": 0.844,
+   "page_hit5": 0.976,
+   "by_doc_hit5": {
+    "gcc": 1.0,
+    "bsr": 0.871,
+    "nit": 1.0
+   }
+  },
+  {
+   "key": "e5-cohere-fused",
+   "label": "Hybrid (e5) + Cohere Rerank 3.5, fused",
+   "stage": "rerank",
+   "n": 84,
+   "hit1": 0.881,
+   "hit3": 0.976,
+   "hit5": 0.976,
+   "hit8": 0.976,
+   "hit10": 0.976,
+   "recall1": 0.75,
+   "recall5": 0.944,
+   "recall8": 0.954,
+   "recall10": 0.958,
+   "precision1": 0.881,
+   "precision5": 0.429,
+   "precision8": 0.327,
+   "mrr10": 0.923,
+   "ndcg10": 0.873,
+   "page_hit5": 1.0,
+   "by_doc_hit5": {
+    "gcc": 1.0,
+    "bsr": 0.935,
+    "nit": 1.0
+   }
+  },
+  {
+   "key": "cohere-ft-fused",
+   "label": "Hybrid (Cohere) + fine-tuned cross-encoder, fused",
+   "stage": "rerank",
+   "n": 84,
+   "hit1": 0.869,
+   "hit3": 0.952,
+   "hit5": 0.964,
+   "hit8": 0.976,
+   "hit10": 0.976,
+   "recall1": 0.738,
+   "recall5": 0.907,
+   "recall8": 0.927,
+   "recall10": 0.933,
+   "precision1": 0.869,
+   "precision5": 0.383,
+   "precision8": 0.296,
+   "mrr10": 0.908,
+   "ndcg10": 0.846,
+   "page_hit5": 1.0,
+   "by_doc_hit5": {
+    "gcc": 1.0,
+    "bsr": 0.903,
+    "nit": 1.0
+   }
+  },
+  {
+   "key": "cohere-cohere-fused",
+   "label": "Hybrid (Cohere) + Cohere Rerank 3.5, fused (live demo)",
+   "stage": "rerank",
+   "n": 84,
+   "hit1": 0.857,
+   "hit3": 0.976,
+   "hit5": 0.976,
+   "hit8": 0.976,
+   "hit10": 0.976,
+   "recall1": 0.728,
+   "recall5": 0.933,
+   "recall8": 0.944,
+   "recall10": 0.958,
+   "precision1": 0.857,
+   "precision5": 0.402,
+   "precision8": 0.317,
+   "mrr10": 0.915,
+   "ndcg10": 0.871,
+   "page_hit5": 1.0,
+   "by_doc_hit5": {
+    "gcc": 1.0,
+    "bsr": 0.935,
+    "nit": 1.0
+   }
+  }
+ ],
+ "generation": [
+  {
+   "run": "gen-claude-sonnet-5-5-bedrock-only",
+   "label": "Claude Sonnet 5.5, Bedrock-only pipeline (live demo)",
+   "writer": "Claude Sonnet 5.5",
+   "retrieval": "Cohere embed + Cohere rerank",
+   "set": "gold",
+   "n": 96,
+   "judged_correct": 0.927,
+   "judged_ci": [
+    0.88,
+    0.969
+   ],
+   "key_fact_recall": 0.933,
+   "all_key_facts": 0.893,
+   "citation_hit": 0.952,
+   "citation_precision": 0.808,
+   "negatives_handled": 0.9,
+   "negatives_n": 10,
+   "refusal_precision": 0.588,
+   "over_refusal": 0.083,
+   "unsupported_number": 0.083,
+   "quotes_verified": 1.0,
+   "parse_errors": 1,
+   "latency_p50": 6.8
+  },
+  {
+   "run": "gen-claude-opus-5-5",
+   "label": "Claude Opus 5.5",
+   "writer": "Claude Opus 5.5",
+   "retrieval": "e5 + fine-tuned cross-encoder",
+   "set": "gold",
+   "n": 96,
+   "judged_correct": 0.927,
+   "judged_ci": [
+    0.88,
+    0.969
+   ],
+   "key_fact_recall": 0.921,
+   "all_key_facts": 0.881,
+   "citation_hit": 0.976,
+   "citation_precision": 0.774,
+   "negatives_handled": 0.9,
+   "negatives_n": 10,
+   "refusal_precision": 0.6,
+   "over_refusal": 0.071,
+   "unsupported_number": 0.071,
+   "quotes_verified": 1.0,
+   "parse_errors": 0,
+   "latency_p50": 27.1
+  },
+  {
+   "run": "gen-claude-sonnet-5-5",
+   "label": "Claude Sonnet 5.5",
+   "writer": "Claude Sonnet 5.5",
+   "retrieval": "e5 + fine-tuned cross-encoder",
+   "set": "gold",
+   "n": 96,
+   "judged_correct": 0.917,
+   "judged_ci": [
+    0.87,
+    0.964
+   ],
+   "key_fact_recall": 0.91,
+   "all_key_facts": 0.869,
+   "citation_hit": 0.964,
+   "citation_precision": 0.817,
+   "negatives_handled": 1.0,
+   "negatives_n": 10,
+   "refusal_precision": 0.588,
+   "over_refusal": 0.083,
+   "unsupported_number": 0.095,
+   "quotes_verified": 1.0,
+   "parse_errors": 0,
+   "latency_p50": 13.0
+  },
+  {
+   "run": "gen-claude-haiku-5-5",
+   "label": "Claude Haiku 5.5",
+   "writer": "Claude Haiku 5.5",
+   "retrieval": "e5 + fine-tuned cross-encoder",
+   "set": "gold",
+   "n": 96,
+   "judged_correct": 0.891,
+   "judged_ci": [
+    0.833,
+    0.943
+   ],
+   "key_fact_recall": 0.898,
+   "all_key_facts": 0.845,
+   "citation_hit": 0.964,
+   "citation_precision": 0.803,
+   "negatives_handled": 0.9,
+   "negatives_n": 10,
+   "refusal_precision": 0.45,
+   "over_refusal": 0.131,
+   "unsupported_number": 0.095,
+   "quotes_verified": 1.0,
+   "parse_errors": 0,
+   "latency_p50": 15.4
+  },
+  {
+   "run": "gen-deepseek-v3",
+   "label": "DeepSeek V3",
+   "writer": "DeepSeek V3",
+   "retrieval": "e5 + fine-tuned cross-encoder",
+   "set": "gold",
+   "n": 96,
+   "judged_correct": 0.88,
+   "judged_ci": [
+    0.828,
+    0.932
+   ],
+   "key_fact_recall": 0.9,
+   "all_key_facts": 0.833,
+   "citation_hit": 0.94,
+   "citation_precision": 0.893,
+   "negatives_handled": 0.7,
+   "negatives_n": 10,
+   "refusal_precision": 0.588,
+   "over_refusal": 0.083,
+   "unsupported_number": 0.107,
+   "quotes_verified": 0.975,
+   "parse_errors": 0,
+   "latency_p50": 16.9
+  },
+  {
+   "run": "gen-qwen3-235b",
+   "label": "Qwen3 235B",
+   "writer": "Qwen3 235B",
+   "retrieval": "e5 + fine-tuned cross-encoder",
+   "set": "gold",
+   "n": 96,
+   "judged_correct": 0.875,
+   "judged_ci": [
+    0.812,
+    0.932
+   ],
+   "key_fact_recall": 0.893,
+   "all_key_facts": 0.821,
+   "citation_hit": 0.952,
+   "citation_precision": 0.924,
+   "negatives_handled": 0.8,
+   "negatives_n": 10,
+   "refusal_precision": 0.833,
+   "over_refusal": 0.024,
+   "unsupported_number": 0.083,
+   "quotes_verified": 1.0,
+   "parse_errors": 0,
+   "latency_p50": 16.8
+  },
+  {
+   "run": "final",
+   "label": "gpt-oss-120b (first submission)",
+   "writer": "gpt-oss-120b",
+   "retrieval": "e5 + fine-tuned cross-encoder",
+   "set": "gold",
+   "n": 96,
+   "judged_correct": 0.849,
+   "judged_ci": [
+    0.792,
+    0.906
+   ],
+   "key_fact_recall": 0.848,
+   "all_key_facts": 0.75,
+   "citation_hit": 0.929,
+   "citation_precision": 0.885,
+   "negatives_handled": 0.8,
+   "negatives_n": 10,
+   "refusal_precision": 0.667,
+   "over_refusal": 0.048,
+   "unsupported_number": 0.083,
+   "quotes_verified": 0.976,
+   "parse_errors": 0,
+   "latency_p50": 7.5
+  },
+  {
+   "run": "gen-gpt-oss-20b",
+   "label": "gpt-oss-20b",
+   "writer": "gpt-oss-20b",
+   "retrieval": "e5 + fine-tuned cross-encoder",
+   "set": "gold",
+   "n": 96,
+   "judged_correct": 0.839,
+   "judged_ci": [
+    0.781,
+    0.896
+   ],
+   "key_fact_recall": 0.83,
+   "all_key_facts": 0.714,
+   "citation_hit": 0.881,
+   "citation_precision": 0.855,
+   "negatives_handled": 0.8,
+   "negatives_n": 10,
+   "refusal_precision": 0.533,
+   "over_refusal": 0.083,
+   "unsupported_number": 0.179,
+   "quotes_verified": 0.988,
+   "parse_errors": 0,
+   "latency_p50": 11.4
+  },
+  {
+   "run": "v2-rerank-base-fused",
+   "label": "gpt-oss-120b, original cross-encoder",
+   "writer": "gpt-oss-120b",
+   "retrieval": "e5 + original cross-encoder",
+   "set": "gold",
+   "n": 96,
+   "judged_correct": 0.865,
+   "judged_ci": [
+    0.807,
+    0.917
+   ],
+   "key_fact_recall": 0.846,
+   "all_key_facts": 0.738,
+   "citation_hit": 0.905,
+   "citation_precision": 0.849,
+   "negatives_handled": 0.6,
+   "negatives_n": 10,
+   "refusal_precision": 0.667,
+   "over_refusal": 0.048,
+   "unsupported_number": 0.143,
+   "quotes_verified": 1.0,
+   "parse_errors": 0,
+   "latency_p50": 8.3
+  },
+  {
+   "run": "v2-norerank",
+   "label": "gpt-oss-120b, no reranker",
+   "writer": "gpt-oss-120b",
+   "retrieval": "e5, no reranker",
+   "set": "gold",
+   "n": 96,
+   "judged_correct": 0.839,
+   "judged_ci": [
+    0.781,
+    0.891
+   ],
+   "key_fact_recall": 0.868,
+   "all_key_facts": 0.786,
+   "citation_hit": 0.94,
+   "citation_precision": 0.891,
+   "negatives_handled": 0.6,
+   "negatives_n": 10,
+   "refusal_precision": 0.8,
+   "over_refusal": 0.024,
+   "unsupported_number": 0.06,
+   "quotes_verified": 1.0,
+   "parse_errors": 0,
+   "latency_p50": 2.1
+  },
+  {
+   "run": "final-v1-gate-in-prompt",
+   "label": "gpt-oss-120b, fine-tuned re-sorted + gate in prompt (first try)",
+   "writer": "gpt-oss-120b",
+   "retrieval": "e5 + fine-tuned, re-sorted",
+   "set": "gold",
+   "n": 96,
+   "judged_correct": 0.807,
+   "judged_ci": [
+    0.74,
+    0.87
+   ],
+   "key_fact_recall": 0.807,
+   "all_key_facts": 0.702,
+   "citation_hit": 0.881,
+   "citation_precision": 0.865,
+   "negatives_handled": 0.7,
+   "negatives_n": 10,
+   "refusal_precision": 0.438,
+   "over_refusal": 0.107,
+   "unsupported_number": 0.095,
+   "quotes_verified": 1.0,
+   "parse_errors": 0,
+   "latency_p50": 6.1
+  },
+  {
+   "run": "blind-live-bedrock-sonnet-5-5",
+   "label": "Claude Sonnet 5.5, Bedrock-only pipeline (live demo)",
+   "writer": "Claude Sonnet 5.5",
+   "retrieval": "Cohere embed + Cohere rerank",
+   "set": "blind",
+   "n": 30,
+   "judged_correct": 0.967,
+   "judged_ci": [
+    0.917,
+    1.0
+   ],
+   "key_fact_recall": 0.937,
+   "all_key_facts": 0.857,
+   "citation_hit": 1.0,
+   "citation_precision": 0.833,
+   "negatives_handled": 0.889,
+   "negatives_n": 9,
+   "refusal_precision": 0.9,
+   "over_refusal": 0.048,
+   "unsupported_number": 0.048,
+   "quotes_verified": 1.0,
+   "parse_errors": 0,
+   "latency_p50": 6.2
+  },
+  {
+   "run": "blind-sonnet-5-5",
+   "label": "Claude Sonnet 5.5",
+   "writer": "Claude Sonnet 5.5",
+   "retrieval": "e5 + fine-tuned cross-encoder",
+   "set": "blind",
+   "n": 30,
+   "judged_correct": 0.967,
+   "judged_ci": [
+    0.9,
+    1.0
+   ],
+   "key_fact_recall": 0.925,
+   "all_key_facts": 0.857,
+   "citation_hit": 0.952,
+   "citation_precision": 0.876,
+   "negatives_handled": 1.0,
+   "negatives_n": 9,
+   "refusal_precision": 0.9,
+   "over_refusal": 0.048,
+   "unsupported_number": 0.048,
+   "quotes_verified": 1.0,
+   "parse_errors": 0,
+   "latency_p50": 8.5
+  },
+  {
+   "run": "blind-final",
+   "label": "gpt-oss-120b (first submission)",
+   "writer": "gpt-oss-120b",
+   "retrieval": "e5 + fine-tuned cross-encoder",
+   "set": "blind",
+   "n": 30,
+   "judged_correct": 0.9,
+   "judged_ci": [
+    0.8,
+    0.983
+   ],
+   "key_fact_recall": 0.837,
+   "all_key_facts": 0.667,
+   "citation_hit": 0.952,
+   "citation_precision": 0.905,
+   "negatives_handled": 0.889,
+   "negatives_n": 9,
+   "refusal_precision": 0.857,
+   "over_refusal": 0.048,
+   "unsupported_number": 0.095,
+   "quotes_verified": 1.0,
+   "parse_errors": 0,
+   "latency_p50": 8.8
+  },
+  {
+   "run": "blind-rerank-base-fused",
+   "label": "gpt-oss-120b, original cross-encoder",
+   "writer": "gpt-oss-120b",
+   "retrieval": "e5 + original cross-encoder",
+   "set": "blind",
+   "n": 30,
+   "judged_correct": 0.85,
+   "judged_ci": [
+    0.733,
+    0.933
+   ],
+   "key_fact_recall": 0.825,
+   "all_key_facts": 0.619,
+   "citation_hit": 0.952,
+   "citation_precision": 0.897,
+   "negatives_handled": 0.556,
+   "negatives_n": 9,
+   "refusal_precision": 0.857,
+   "over_refusal": 0.048,
+   "unsupported_number": 0.095,
+   "quotes_verified": 1.0,
+   "parse_errors": 0,
+   "latency_p50": 7.3
+  },
+  {
+   "run": "blind-norerank",
+   "label": "gpt-oss-120b, no reranker",
+   "writer": "gpt-oss-120b",
+   "retrieval": "e5, no reranker",
+   "set": "blind",
+   "n": 30,
+   "judged_correct": 0.85,
+   "judged_ci": [
+    0.717,
+    0.95
+   ],
+   "key_fact_recall": 0.813,
+   "all_key_facts": 0.667,
+   "citation_hit": 0.952,
+   "citation_precision": 0.897,
+   "negatives_handled": 0.667,
+   "negatives_n": 9,
+   "refusal_precision": 0.857,
+   "over_refusal": 0.048,
+   "unsupported_number": 0.048,
+   "quotes_verified": 1.0,
+   "parse_errors": 0,
+   "latency_p50": 2.0
+  }
+ ],
+ "reranker_synthetic": {
+  "note": "Held-out synthetic questions from TEST page blocks the reranker never saw: 400 questions, 200 near-misses.",
+  "rows": [
+   {
+    "label": "No reranker (hybrid order)",
+    "hit1": 0.537,
+    "hit8": 0.8,
+    "mrr10": 0.632,
+    "auroc_source": null,
+    "auroc_top": null
+   },
+   {
+    "label": "Original cross-encoder, re-sorted",
+    "hit1": 0.652,
+    "hit8": 0.848,
+    "mrr10": 0.723,
+    "auroc_source": 0.45,
+    "auroc_top": 0.407
+   },
+   {
+    "label": "Fine-tuned cross-encoder, re-sorted",
+    "hit1": 0.708,
+    "hit8": 0.882,
+    "mrr10": 0.779,
+    "auroc_source": 0.838,
+    "auroc_top": 0.772
+   },
+   {
+    "label": "Original cross-encoder, fused",
+    "hit1": 0.59,
+    "hit8": 0.85,
+    "mrr10": 0.684,
+    "auroc_source": null,
+    "auroc_top": null
+   },
+   {
+    "label": "Fine-tuned cross-encoder, fused",
+    "hit1": 0.64,
+    "hit8": 0.873,
+    "mrr10": 0.726,
+    "auroc_source": null,
+    "auroc_top": null
+   }
+  ]
+ },
+ "gate_gold": {
+  "note": "Top cross-encoder score as an answerability signal on the 96 real gold questions; threshold 0.70 from synthetic dev pages.",
+  "rows": [
+   {
+    "label": "Original cross-encoder",
+    "auroc": 0.529,
+    "answerable_below": 0.21,
+    "unanswerable_below": 0.25
+   },
+   {
+    "label": "Fine-tuned cross-encoder",
+    "auroc": 0.727,
+    "answerable_below": 0.48,
+    "unanswerable_below": 0.75
+   }
+  ]
+ },
+ "ocr": {
+  "note": "Tender scan: 6 hand-transcribed regions (61 lines, 86 numbers); field check on 94 hand-read numeric fields.",
+  "rows": [
+   {
+    "label": "Claude Sonnet 4.6 (vision)",
+    "cer": 0.006,
+    "numbers": "86/86",
+    "fields": "94/94",
+    "role": "primary reader"
+   },
+   {
+    "label": "Llama 4 Maverick",
+    "cer": 0.02,
+    "numbers": "81/86",
+    "fields": "92/94",
+    "role": "third reader"
+   },
+   {
+    "label": "Gemma 3 27B",
+    "cer": 0.043,
+    "numbers": "86/86",
+    "fields": "70/94",
+    "role": "second reader"
+   },
+   {
+    "label": "Tesseract 5 hin+eng",
+    "cer": 0.128,
+    "numbers": "51/86",
+    "fields": null,
+    "role": "bake-off"
+   },
+   {
+    "label": "Pixtral Large",
+    "cer": 0.201,
+    "numbers": "71/86",
+    "fields": null,
+    "role": "bake-off"
+   },
+   {
+    "label": "RapidOCR PP-OCRv5 Devanagari",
+    "cer": 0.228,
+    "numbers": "78/86",
+    "fields": null,
+    "role": "bake-off"
+   }
+  ]
+ },
+ "parsing": {
+  "rows": [
+   {
+    "label": "Rate rows exactly right, hand-checked (in-sample)",
+    "value": "63/63"
+   },
+   {
+    "label": "Rate agreement with an independently written parser",
+    "value": "99.1% of 6,510"
+   },
+   {
+    "label": "Unit agreement with the independent parser",
+    "value": "98.7%"
+   },
+   {
+    "label": "Generic table extractors on the same 63 rows",
+    "value": "54% and 56%"
+   },
+   {
+    "label": "Tender numbers after three-reader voting",
+    "value": "94/94"
+   }
+  ]
+ },
+ "router": {
+  "note": "56 labelled messages (evals/router_cases.jsonl), written for development: the router prompt was changed once, after the first run sent small talk (\"how are you?\") to the documents. Router model Claude Haiku 5.5; plain greetings are matched without a model call.",
+  "accuracy": 1.0,
+  "n": 56,
+  "per_route": {
+   "docs": {
+    "n": 22,
+    "recall": 1.0,
+    "precision": 1.0
+   },
+   "greeting": {
+    "n": 13,
+    "recall": 1.0,
+    "precision": 1.0
+   },
+   "about": {
+    "n": 8,
+    "recall": 1.0,
+    "precision": 1.0
+   },
+   "off_topic": {
+    "n": 13,
+    "recall": 1.0,
+    "precision": 1.0
+   }
+  },
+  "confusion": [
+   {
+    "expected": "about",
+    "got": "about",
+    "n": 8
+   },
+   {
+    "expected": "docs",
+    "got": "docs",
+    "n": 22
+   },
+   {
+    "expected": "greeting",
+    "got": "greeting",
+    "n": 13
+   },
+   {
+    "expected": "off_topic",
+    "got": "off_topic",
+    "n": 13
+   }
+  ],
+  "rewrite_ok": "4/4",
+  "rules_share": 0.179,
+  "latency_p50": 1.05,
+  "gold_docs": "96/96",
+  "blind_docs": "30/30"
+ }
+}

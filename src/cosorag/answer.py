@@ -145,8 +145,19 @@ def verify(question: str, data: dict, sources: list[Chunk]) -> dict:
     }
 
 
-def answer(index: Index, question: str, llm: LLM | None = None, k: int = 8, mode: str = "hybrid",
-           docs: set[str] | None = None, retries: int = 1, rerank: bool = True, reranker: str | None = None) -> Answer:
+@dataclass
+class Prepared:
+    """Search and rerank results for one question, before any model writes: lets the web view run the input
+    guardrail and the search at the same time."""
+    question: str
+    retrieval: Retrieval
+    sources: list[Chunk]
+    timings: dict
+    gate: str = ""
+
+
+def prepare(index: Index, question: str, k: int = 8, mode: str = "hybrid", docs: set[str] | None = None,
+            rerank: bool = True, reranker: str | None = None) -> Prepared:
     from . import rerank as rr
 
     t0 = time.time()
@@ -172,8 +183,17 @@ def answer(index: Index, question: str, llm: LLM | None = None, k: int = 8, mode
             if top < thr and not pinned:
                 gate += ": low confidence, check the cited passage"
         timings["rerank_s"] = round(time.time() - t1, 3)
-        t1 = time.time()
-    sources = expand_neighbours(index, [index.chunks[h.idx] for h in r.hits])
+    return Prepared(question, r, expand_neighbours(index, [index.chunks[h.idx] for h in r.hits]), timings, gate)
+
+
+def answer(index: Index, question: str, llm: LLM | None = None, k: int = 8, mode: str = "hybrid",
+           docs: set[str] | None = None, retries: int = 1, rerank: bool = True, reranker: str | None = None,
+           prepared: Prepared | None = None) -> Answer:
+    p = prepared
+    if p is None or p.question != question:
+        p = prepare(index, question, k=k, mode=mode, docs=docs, rerank=rerank, reranker=reranker)
+    r, sources, timings, gate = p.retrieval, p.sources, dict(p.timings), p.gate
+    t1 = time.time()
     if llm is None:  # retrieval-only mode: no model, show the best passages
         return Answer(question, "(retrieval-only mode: no LLM configured; top passages below)", True,
                       [{"n": i + 1, "chunk_id": c.id, "cite": c.label(), "quote": c.text[:300], "doc": c.doc,

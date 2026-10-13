@@ -1,106 +1,1503 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="auto">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Construction Docs Q&amp;A</title>
+<meta name="description" content="Cited answers over the CPWD contract 2020, the RHB schedule of rates 2024 and a Rajasthan PWD tender scan.">
+<meta name="color-scheme" content="light dark">
+<link rel="preload" href="/assets/plex-sans.woff2" as="font" type="font/woff2" crossorigin>
 <style>
-  :root { --ink:#1d1f21; --mute:#6b6f76; --line:#e4e2dc; --bg:#faf9f6; --card:#fff; --acc:#c2410c; --ok:#15803d; --warn:#b45309; }
-  * { box-sizing: border-box; }
-  body { margin:0; font: 15px/1.55 system-ui, -apple-system, "Segoe UI", "Noto Sans Devanagari", sans-serif; color:var(--ink); background:var(--bg); }
-  main { max-width: 1180px; margin: 0 auto; padding: 28px 20px 60px; display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 24px; }
-  header { grid-column: 1 / -1; }
-  h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: -0.01em; }
-  .sub { color: var(--mute); font-size: 13.5px; }
-  form { display:flex; gap:8px; margin-top: 16px; }
-  input[type=text] { flex:1; padding: 11px 13px; font-size: 15px; border:1px solid var(--line); border-radius: 8px; background: var(--card); }
-  button { padding: 0 16px; border:0; border-radius: 8px; background: var(--ink); color: #fff; font-weight: 600; cursor: pointer; }
-  button:disabled { opacity: .5; }
-  .examples { margin-top: 10px; display:flex; flex-wrap: wrap; gap: 6px; }
-  .examples a { font-size: 12.5px; color: var(--mute); border:1px solid var(--line); border-radius: 999px; padding: 3px 10px; text-decoration: none; background: var(--card); cursor: pointer; }
-  .card { background: var(--card); border:1px solid var(--line); border-radius: 10px; padding: 18px 20px; }
-  .status { font-size: 12.5px; font-weight: 600; margin-bottom: 8px; }
-  .status.ok { color: var(--ok); } .status.warn { color: var(--warn); } .status.na { color: #1d4ed8; }
-  .answer { white-space: pre-wrap; }
-  .cites { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
-  .cite { padding: 8px 0; border-bottom: 1px dashed var(--line); cursor: pointer; }
-  .cite:last-child { border-bottom: 0; }
-  .cite b { color: var(--acc); }
-  .cite .q { color: var(--mute); font-size: 13px; margin-top: 2px; }
-  .meta { color: var(--mute); font-size: 12px; margin-top: 12px; }
-  .viewer img { width: 100%; border:1px solid var(--line); border-radius: 6px; }
-  .viewer .hint { color: var(--mute); font-size: 13px; }
-  .gatebox { display:none; margin-top: 10px; gap: 8px; align-items: center; font-size: 13.5px; color: var(--mute); }
-  .gatebox input { width: 180px; padding: 7px 10px; border:1px solid var(--line); border-radius: 8px; font-size: 14px; }
-  .gatebox button { padding: 7px 12px; }
-  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+@font-face{font-family:"Plex";src:url(/assets/plex-sans.woff2) format("woff2");font-weight:100 700;font-display:swap}
+@font-face{font-family:"Plex Deva";src:url(/assets/plex-deva-400.woff2) format("woff2");font-weight:400;font-display:swap;unicode-range:U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+25CC,U+A830-A839,U+A8E0-A8FF}
+@font-face{font-family:"Plex Deva";src:url(/assets/plex-deva-600.woff2) format("woff2");font-weight:600;font-display:swap;unicode-range:U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+25CC,U+A830-A839,U+A8E0-A8FF}
+@font-face{font-family:"Plex Mono";src:url(/assets/plex-mono-400.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Plex Mono";src:url(/assets/plex-mono-500.woff2) format("woff2");font-weight:500;font-display:swap}
+
+/* ===== tokens: "ink and saffron". Teal ink carries structure, saffron marks evidence (the same orange box the
+   server draws around a cited row). ===== */
+:root{
+  --sans:"Plex","Plex Deva",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+  --r1:10px; --r2:18px;
+  --ease:cubic-bezier(.22,1,.36,1);
+  --nav-w:268px; --panel-w:min(520px,42vw);
+
+  --bg:oklch(.988 .003 95); --nav:oklch(.966 .005 95); --surface:oklch(1 0 0); --seg-on:oklch(1 0 0); --raised:oklch(.972 .004 95);
+  --hover:oklch(.94 .006 95); --press:oklch(.91 .007 95);
+  --fg:oklch(.24 .02 230); --muted:oklch(.47 .018 230); --faint:oklch(.6 .014 230);
+  --line:oklch(.915 .006 95); --line-2:oklch(.85 .008 95);
+  --ink:oklch(.34 .055 215); --ink-fg:oklch(.99 0 0); --ink-hover:oklch(.29 .05 215);
+  --saffron:oklch(.76 .155 68); --saffron-ink:oklch(.5 .13 55); --wash:oklch(.94 .07 85 / .75); --wash-line:oklch(.72 .16 58);
+  --good:oklch(.5 .12 155); --good-bg:oklch(.95 .04 155);
+  --warn:oklch(.55 .13 65); --warn-bg:oklch(.96 .05 85);
+  --bad:oklch(.52 .17 28); --bad-bg:oklch(.95 .03 28);
+  --info:oklch(.47 .08 235); --info-bg:oklch(.95 .02 235);
+  --gcc:oklch(.52 .1 240); --bsr:oklch(.52 .11 160); --nit:oklch(.56 .14 35);
+  --thumb:oklch(.8 .01 230); --thumb-hover:oklch(.68 .014 230);
+  --float:0 10px 30px oklch(.25 .03 230 / .12),0 2px 6px oklch(.25 .03 230 / .06);
+  --scrim:oklch(.2 .02 230 / .32);
+}
+:root[data-theme="dark"]{
+  --bg:oklch(.19 .014 230); --nav:oklch(.165 .013 230); --surface:oklch(.225 .015 230); --seg-on:oklch(.34 .016 230); --raised:oklch(.25 .016 230);
+  --hover:oklch(.27 .016 230); --press:oklch(.3 .017 230);
+  --fg:oklch(.94 .006 95); --muted:oklch(.74 .014 230); --faint:oklch(.6 .014 230);
+  --line:oklch(.3 .015 230); --line-2:oklch(.37 .016 230);
+  --ink:oklch(.8 .14 72); --ink-fg:oklch(.2 .03 60); --ink-hover:oklch(.85 .13 75);
+  --saffron:oklch(.8 .14 72); --saffron-ink:oklch(.83 .12 75); --wash:oklch(.72 .12 70 / .16); --wash-line:oklch(.74 .14 62);
+  --good:oklch(.78 .12 155); --good-bg:oklch(.3 .05 155);
+  --warn:oklch(.82 .12 80); --warn-bg:oklch(.32 .05 80);
+  --bad:oklch(.75 .14 28); --bad-bg:oklch(.32 .06 28);
+  --info:oklch(.8 .08 235); --info-bg:oklch(.3 .04 235);
+  --gcc:oklch(.76 .1 240); --bsr:oklch(.78 .11 160); --nit:oklch(.76 .13 40);
+  --thumb:oklch(.38 .014 230); --thumb-hover:oklch(.48 .016 230);
+  --float:0 14px 40px oklch(0 0 0 / .45),0 2px 8px oklch(0 0 0 / .3);
+  --scrim:oklch(0 0 0 / .5);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:oklch(.19 .014 230); --nav:oklch(.165 .013 230); --surface:oklch(.225 .015 230); --seg-on:oklch(.34 .016 230); --raised:oklch(.25 .016 230);
+  --hover:oklch(.27 .016 230); --press:oklch(.3 .017 230);
+  --fg:oklch(.94 .006 95); --muted:oklch(.74 .014 230); --faint:oklch(.6 .014 230);
+  --line:oklch(.3 .015 230); --line-2:oklch(.37 .016 230);
+  --ink:oklch(.8 .14 72); --ink-fg:oklch(.2 .03 60); --ink-hover:oklch(.85 .13 75);
+  --saffron:oklch(.8 .14 72); --saffron-ink:oklch(.83 .12 75); --wash:oklch(.72 .12 70 / .16); --wash-line:oklch(.74 .14 62);
+  --good:oklch(.78 .12 155); --good-bg:oklch(.3 .05 155);
+  --warn:oklch(.82 .12 80); --warn-bg:oklch(.32 .05 80);
+  --bad:oklch(.75 .14 28); --bad-bg:oklch(.32 .06 28);
+  --info:oklch(.8 .08 235); --info-bg:oklch(.3 .04 235);
+  --gcc:oklch(.76 .1 240); --bsr:oklch(.78 .11 160); --nit:oklch(.76 .13 40);
+  --thumb:oklch(.38 .014 230); --thumb-hover:oklch(.48 .016 230);
+  --float:0 14px 40px oklch(0 0 0 / .45),0 2px 8px oklch(0 0 0 / .3);
+  --scrim:oklch(0 0 0 / .5);
+}}
+
+/* ===== base ===== */
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 15px/1.55 var(--sans);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow:hidden}
+html.theming *{transition:background-color .3s ease,border-color .3s ease,color .3s ease!important}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--saffron-ink);text-underline-offset:3px;text-decoration-thickness:1px}
+:lang(hi){font-family:"Plex Deva","Plex",system-ui,sans-serif}
+code,.mono{font-family:var(--mono);font-size:.88em}
+code{background:var(--raised);border:1px solid var(--line);border-radius:5px;padding:.04em .35em;overflow-wrap:anywhere}
+:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.num{font-variant-numeric:tabular-nums}
+svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+
+/* custom scrollbars: thin, quiet until hovered */
+.scroll{overflow:auto;scrollbar-width:thin;scrollbar-color:transparent transparent;overscroll-behavior:contain}
+.scroll:hover,.scroll:focus-within{scrollbar-color:var(--thumb) transparent}
+.scroll::-webkit-scrollbar{width:10px;height:10px}
+.scroll::-webkit-scrollbar-track{background:transparent}
+.scroll::-webkit-scrollbar-thumb{background:transparent;border-radius:10px;border:3px solid transparent;background-clip:padding-box}
+.scroll:hover::-webkit-scrollbar-thumb{background-color:var(--thumb)}
+.scroll::-webkit-scrollbar-thumb:hover{background-color:var(--thumb-hover)}
+
+/* ===== buttons: one system, ranked by importance ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 14px;border-radius:var(--r1);border:1px solid transparent;background:transparent;font-size:14px;font-weight:500;white-space:nowrap;transition:background-color .15s,border-color .15s,color .15s,transform .1s ease-out;user-select:none;-webkit-tap-highlight-color:transparent}
+.btn:active:not(:disabled){transform:scale(.97)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:var(--ink);color:var(--ink-fg)}
+.btn-primary:hover:not(:disabled){background:var(--ink-hover)}
+.btn-secondary{background:var(--surface);border-color:var(--line-2);color:var(--fg)}
+.btn-secondary:hover:not(:disabled){background:var(--hover)}
+.btn-ghost{color:var(--muted)}
+.btn-ghost:hover:not(:disabled){background:var(--hover);color:var(--fg)}
+.btn-ghost[aria-pressed="true"],.btn-ghost[aria-current="page"]{background:var(--hover);color:var(--fg)}
+.icon-btn{width:36px;padding:0}
+.btn-sm{height:30px;padding:0 10px;font-size:13px;border-radius:8px}
+.btn-sm.icon-btn{width:30px;padding:0}
+.btn-sm svg.i{width:16px;height:16px}
+
+/* ===== app shell ===== */
+.app{display:grid;grid-template-columns:var(--nav-w) minmax(0,1fr) 0;height:100vh;height:100dvh;transition:grid-template-columns .32s var(--ease)}
+.app.nav-closed{grid-template-columns:0 minmax(0,1fr) 0}
+.app.panel-open{grid-template-columns:var(--nav-w) minmax(0,1fr) var(--panel-w)}
+.app.nav-closed.panel-open{grid-template-columns:0 minmax(0,1fr) var(--panel-w)}
+
+/* sidebar */
+.nav{background:var(--nav);border-right:1px solid var(--line);display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.nav-in{width:var(--nav-w);display:flex;flex-direction:column;height:100%;padding:12px}
+.brand{display:flex;align-items:center;gap:10px;padding:6px 6px 14px;justify-content:space-between}
+.brand-id{display:flex;align-items:center;gap:10px;min-width:0}
+.mark{width:28px;height:28px;border-radius:8px;background:var(--ink);display:grid;place-items:center;flex:none}
+.mark svg{width:16px;height:16px;stroke:var(--ink-fg);fill:none;stroke-width:1.8;stroke-linecap:round}
+.brand b{font-weight:620;font-size:14.5px;letter-spacing:-.01em;display:block;line-height:1.2}
+.brand small{display:block;color:var(--faint);font-size:12px;line-height:1.3}
+.nav .new{width:100%;justify-content:flex-start;margin-bottom:6px}
+.nav .new kbd{margin-left:auto;font:500 11px var(--mono);color:var(--faint);border:1px solid var(--line-2);border-radius:5px;padding:1px 5px}
+.views{display:flex;flex-direction:column;gap:2px;margin-bottom:14px}
+.views .btn{justify-content:flex-start;width:100%}
+.nav h3{font-size:12px;font-weight:560;color:var(--faint);margin:4px 8px 6px;letter-spacing:.02em}
+.recents{flex:1;min-height:0;margin:0 -4px;padding:0 4px}
+.recents ul{list-style:none;margin:0;padding:0}
+.recents li{position:relative}
+.recents a{display:block;padding:7px 34px 7px 10px;border-radius:8px;color:var(--muted);text-decoration:none;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recents a:hover{background:var(--hover);color:var(--fg)}
+.recents a[aria-current="true"]{background:var(--hover);color:var(--fg);font-weight:500}
+.recents .del{position:absolute;right:4px;top:50%;transform:translateY(-50%);opacity:0}
+.recents li:hover .del,.recents .del:focus-visible{opacity:1}
+.recents .empty{color:var(--faint);font-size:13px;padding:4px 10px}
+.nav-foot{border-top:1px solid var(--line);padding-top:10px;margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.corpus{font-size:12.5px;color:var(--faint);padding:2px 8px 6px;line-height:1.45}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:3px;background:var(--hover);border-radius:10px}
+.seg button{border:0;background:transparent;border-radius:7px;height:28px;font-size:12.5px;color:var(--muted);transition:background-color .15s,color .15s}
+.seg button[aria-pressed="true"]{background:var(--seg-on);color:var(--fg);box-shadow:0 1px 2px oklch(.2 .02 230 / .12)}
+.nav-foot .row{display:flex;gap:6px}
+.nav-foot .row .btn{flex:1;justify-content:flex-start}
+
+/* main */
+.nav{grid-column:1;grid-row:1}
+.panel{grid-column:3;grid-row:1}
+.main{grid-column:2;grid-row:1;display:flex;flex-direction:column;min-width:0;min-height:0;position:relative;background:var(--bg)}
+.top{height:54px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid transparent;transition:border-color .2s}
+.top.edge{border-bottom-color:var(--line)}
+.top .title{flex:1;min-width:0;font-size:14.5px;font-weight:560;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .title small{font-weight:400;color:var(--faint);margin-left:6px}
+.view{flex:1;min-height:0;display:flex;flex-direction:column}
+.view[hidden]{display:none}
+
+/* thread */
+.thread{flex:1;min-height:0}
+.col{max-width:760px;margin:0 auto;padding:12px 24px 24px}
+.msg{margin:22px 0}
+.msg.user{display:flex;justify-content:flex-end}
+.bubble{background:var(--raised);border:1px solid var(--line);border-radius:18px 18px 6px 18px;padding:10px 15px;max-width:82%;font-size:15.5px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.bot{display:grid;grid-template-columns:30px minmax(0,1fr);gap:12px}
+.avatar{width:30px;height:30px;display:grid;place-items:center;margin-top:1px}
+canvas.orb{display:block}
+.hello .orb64{margin:0 0 18px -6px}
+.who{font-size:12.5px;color:var(--faint);margin:4px 0 6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.answer{font-size:16px;line-height:1.68;overflow-wrap:anywhere}
+.answer p{margin:0 0 12px}
+.answer p:last-child{margin-bottom:0}
+.answer ul,.answer ol{margin:0 0 12px;padding-left:1.3em}
+.answer li{margin:0 0 6px}
+.answer li::marker{color:var(--faint)}
+.answer strong{font-weight:620}
+.ref{display:inline-grid;place-items:center;min-width:20px;height:19px;padding:0 5px;margin:0 2px;border-radius:6px;border:0;background:var(--wash);box-shadow:inset 0 0 0 1px var(--wash-line);color:var(--saffron-ink);font:600 11.5px/1 var(--mono);vertical-align:2px;transition:transform .1s ease-out,background-color .15s}
+.ref:hover{background:oklch(from var(--saffron) l c h / .35)}
+.ref:active{transform:scale(.94)}
+.ref.on{background:var(--saffron);color:oklch(.22 .03 60)}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:560;padding:3px 9px 3px 7px;border-radius:999px}
+.status svg{width:14px;height:14px}
+.status.ok{background:var(--good-bg);color:var(--good)} .status.warn{background:var(--warn-bg);color:var(--warn)}
+.status.na{background:var(--info-bg);color:var(--info)} .status.plain{background:var(--hover);color:var(--muted)}
+.msg.routed .answer{color:var(--fg)}
+.next-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.next-chips button{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:6px 12px;font-size:13px;line-height:1.3;text-align:left;transition:background-color .15s,border-color .15s,transform .1s ease-out}
+.next-chips button:hover{background:var(--hover);border-color:var(--line-2)}
+.next-chips button:active{transform:scale(.97)}
+.next-chips button:focus-visible{outline:2px solid var(--ring, var(--saffron));outline-offset:2px}
+.sources{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.src-chip{display:inline-flex;align-items:center;gap:7px;max-width:100%;height:30px;padding:0 10px 0 6px;border-radius:9px;border:1px solid var(--line);background:var(--surface);font-size:12.5px;color:var(--muted);transition:background-color .15s,border-color .15s,transform .1s ease-out}
+.src-chip:hover{background:var(--hover);color:var(--fg)}
+.src-chip:active{transform:scale(.97)}
+.src-chip.on{border-color:var(--wash-line);background:var(--wash);color:var(--fg)}
+.src-chip .n{font:600 11px/1 var(--mono);color:var(--saffron-ink);background:var(--wash);box-shadow:inset 0 0 0 1px var(--wash-line);border-radius:5px;padding:3px 5px}
+.src-chip .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dot{width:7px;height:7px;border-radius:50%;flex:none;background:var(--faint)}
+.dot.gcc{background:var(--gcc)} .dot.bsr{background:var(--bsr)} .dot.nit{background:var(--nit)}
+.note-line{font-size:13px;color:var(--muted);margin-top:10px;display:flex;gap:7px;align-items:flex-start}
+.note-line svg{width:15px;height:15px;margin-top:2px}
+.note-line.warn{color:var(--warn)}
+.actions{display:flex;gap:2px;align-items:center;margin-top:8px;margin-left:-6px;color:var(--faint)}
+.actions .time{font-size:12px;margin-left:6px}
+.thinking{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:14.5px;padding:4px 0}
+.pulse{display:inline-flex;gap:4px}
+.pulse i{width:6px;height:6px;border-radius:50%;background:var(--saffron);animation:blink 1.2s infinite ease-in-out}
+.pulse i:nth-child(2){animation-delay:.15s} .pulse i:nth-child(3){animation-delay:.3s}
+@keyframes blink{0%,80%,100%{opacity:.25;transform:scale(.85)}40%{opacity:1;transform:none}}
+.thinking small{display:block;color:var(--faint);font-size:12.5px}
+.err{border:1px solid var(--line);background:var(--bad-bg);color:var(--bad);border-radius:12px;padding:10px 14px;font-size:14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.appear{animation:appear .28s var(--ease)}
+@keyframes appear{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* empty state */
+.hello{max-width:760px;margin:0 auto;padding:6vh 24px 24px}
+.about{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);background:var(--raised);border-radius:14px;padding:12px 14px;margin:0 0 22px;font-size:13.5px;color:var(--muted);line-height:1.5}
+.about svg.i{width:16px;height:16px;margin-top:2px;color:var(--faint)}
+.about b{color:var(--fg);font-weight:560}
+.hello h1{font-size:clamp(26px,3.6vw,36px);line-height:1.15;letter-spacing:-.025em;font-weight:620;margin:0 0 10px;text-wrap:balance}
+.hello p.sub{color:var(--muted);font-size:16px;margin:0 0 26px;max-width:58ch}
+.docs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:26px}
+.doc{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--surface)}
+.doc .h{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600}
+.doc p{margin:4px 0 0;font-size:12.5px;color:var(--muted);line-height:1.45}
+.suggest h2{font-size:12.5px;color:var(--faint);font-weight:560;margin:0 0 8px}
+.chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.chip{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 14px;border-radius:14px;border:1px solid var(--line);background:var(--surface);font-size:14px;line-height:1.4;transition:background-color .15s,border-color .15s,transform .1s ease-out}
+.chip:hover{background:var(--hover);border-color:var(--line-2)}
+.chip:active{transform:scale(.985)}
+.chip small{color:var(--faint);font-size:12px;display:flex;align-items:center;gap:6px}
+.banner{display:flex;gap:12px;align-items:center;justify-content:space-between;border:1px solid var(--wash-line);background:var(--wash);border-radius:14px;padding:10px 14px;margin-bottom:22px;font-size:14px;flex-wrap:wrap}
+
+/* composer */
+.dock{flex:none;padding:0 24px 14px;position:relative}
+.dock::before{content:"";position:absolute;left:0;right:0;top:-28px;height:28px;background:linear-gradient(transparent,var(--bg));pointer-events:none}
+.composer{max-width:760px;margin:0 auto;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r2);box-shadow:var(--float);transition:border-color .15s,box-shadow .15s}
+.composer:focus-within{border-color:color-mix(in oklch,var(--saffron) 60%,var(--line-2))}
+.composer textarea{display:block;width:100%;border:0;outline:0;resize:none;background:transparent;padding:14px 16px 4px;font-size:15.5px;line-height:1.5;max-height:200px;min-height:52px}
+.composer textarea::placeholder{color:var(--faint)}
+.bar{display:flex;align-items:center;gap:6px;padding:6px 8px 8px 8px}
+.bar .grow{flex:1}
+.count{font-size:12px;color:var(--faint)}
+.count.over{color:var(--bad)}
+.send{width:36px;height:36px;border-radius:12px;padding:0}
+.send svg.i{width:18px;height:18px;stroke-width:2.1}
+.hint{max-width:760px;margin:8px auto 0;text-align:center;font-size:12px;color:var(--faint);display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.warm{display:inline-flex;align-items:center;gap:6px}
+.warm i{width:7px;height:7px;border-radius:50%;background:var(--warn)}
+.warm.ready i{background:var(--good)}
+
+/* model picker and switch */
+.picker{position:relative}
+.picker > .btn{max-width:240px}
+.picker > .btn .lab{overflow:hidden;text-overflow:ellipsis}
+.menu{position:absolute;left:0;bottom:calc(100% + 8px);width:min(400px,calc(100vw - 32px));background:var(--surface);border:1px solid var(--line-2);border-radius:16px;box-shadow:var(--float);padding:6px;z-index:30;transform-origin:bottom left;opacity:0;visibility:hidden;transform:scale(.97) translateY(4px);transition:opacity .16s var(--ease),transform .2s var(--ease),visibility 0s linear .2s}
+.menu.open{opacity:1;visibility:visible;transform:none;transition:opacity .16s var(--ease),transform .2s var(--ease),visibility 0s}
+.menu .mh{font-size:12px;color:var(--faint);padding:6px 10px 4px}
+.menu [role=option]{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:9px 10px;border-radius:10px;cursor:pointer;outline:0}
+.menu [role=option]:hover,.menu [role=option].active{background:var(--hover)}
+.menu [role=option] b{font-weight:560;font-size:14px;display:flex;align-items:center;gap:8px}
+.menu [role=option] .sc{font-size:12.5px;color:var(--muted);text-align:right;white-space:nowrap}
+.menu [role=option] .d{grid-column:1/-1;font-size:12.5px;color:var(--faint)}
+.menu [role=option] .ck{opacity:0;color:var(--saffron-ink)}
+.menu [role=option][aria-selected=true] .ck{opacity:1}
+.menu .mf{font-size:12px;color:var(--faint);padding:8px 10px 4px;border-top:1px solid var(--line);margin-top:4px}
+.tag{font-size:11px;font-weight:560;padding:1px 6px;border-radius:999px;background:var(--hover);color:var(--muted)}
+.tag.open{background:var(--good-bg);color:var(--good)}
+.switch{display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 8px;border:0;background:transparent;border-radius:8px;font-size:13px;color:var(--muted)}
+.switch:hover{background:var(--hover);color:var(--fg)}
+.switch .track{width:30px;height:18px;border-radius:9px;background:var(--line-2);position:relative;transition:background-color .2s}
+.switch .track::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px oklch(0 0 0 / .25);transition:transform .22s var(--ease)}
+.switch[aria-checked=true] .track{background:var(--ink)}
+.switch[aria-checked=true] .track::after{transform:translateX(12px)}
+
+/* ===== right panel ===== */
+.panel{background:var(--surface);border-left:1px solid var(--line);min-width:0;overflow:hidden;display:flex}
+.panel-in{width:var(--panel-w);display:flex;flex-direction:column;height:100%}
+.ph{flex:none;display:flex;align-items:center;gap:8px;padding:10px 10px 0 16px}
+.ph .t{flex:1;min-width:0}
+.ph .t b{display:block;font-size:14.5px;font-weight:600}
+.ph .t small{display:block;color:var(--faint);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptabs{display:flex;gap:4px;padding:10px 16px 0;border-bottom:1px solid var(--line)}
+.ptabs [role=tab]{border:0;background:transparent;padding:8px 4px 10px;margin-right:12px;font-size:13.5px;color:var(--muted);position:relative}
+.ptabs [role=tab][aria-selected=true]{color:var(--fg);font-weight:560}
+.ptabs [role=tab][aria-selected=true]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--saffron);border-radius:2px}
+.pbody{flex:1;min-height:0;padding:16px}
+.pbody[hidden]{display:none}
+.viewer{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--raised);margin-bottom:16px}
+.vh{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 12px;border-bottom:1px solid var(--line);background:var(--surface)}
+.vh .t{flex:1;min-width:0;font-size:13px}
+.vh .t b{font-weight:560;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vh .t small{color:var(--faint);font-size:12px}
+.vimg{position:relative;overflow:auto;max-height:62vh;background:var(--raised)}
+.vimg img{display:block;width:100%;height:auto;background:#fff}
+.vimg.zoom img{width:160%;max-width:none}
+:root[data-theme="dark"] .vimg img{filter:brightness(.92)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .vimg img{filter:brightness(.92)}}
+.vmsg{padding:28px 18px;text-align:center;color:var(--muted);font-size:13.5px}
+.skel{aspect-ratio:210/297;background:linear-gradient(100deg,var(--raised) 30%,var(--hover) 50%,var(--raised) 70%);background-size:300% 100%;animation:shimmer 1.4s infinite linear}
+@keyframes shimmer{from{background-position:100% 0}to{background-position:0 0}}
+.slist{display:flex;flex-direction:column;gap:8px}
+.scard{text-align:left;width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 12px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;transition:background-color .15s,border-color .15s}
+.scard:hover{background:var(--hover)}
+.scard.on{border-color:var(--wash-line);background:var(--wash);box-shadow:inset 0 0 0 1px var(--wash-line)}
+.scard .n{grid-row:1/3;font:600 11.5px/1 var(--mono);color:var(--saffron-ink);background:var(--wash);box-shadow:inset 0 0 0 1px var(--wash-line);border-radius:6px;padding:5px 6px;align-self:start}
+.scard .l{font-size:13.5px;font-weight:560;display:flex;align-items:center;gap:7px}
+.scard .q{font-size:13px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.trace h4{font-size:12.5px;color:var(--faint);font-weight:560;margin:18px 0 8px}
+.trace h4:first-child{margin-top:0}
+.kv{display:grid;grid-template-columns:110px minmax(0,1fr);gap:6px 12px;font-size:13.5px}
+.kv dt{color:var(--faint)} .kv dd{margin:0}
+.tbar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--hover);margin:4px 0 6px}
+.tbar span{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:0}
+.meter{position:relative;height:8px;border-radius:4px;background:var(--hover);margin:6px 0}
+.meter b{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--ink)}
+.meter b.low{background:var(--warn)}
+.meter i{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--fg);left:70%}
+.ptable{width:100%;border-collapse:collapse;font-size:12.5px}
+.ptable td{padding:7px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+.ptable tr:last-child td{border-bottom:0}
+.ptable .lbl{max-width:0;width:100%}
+.ptable .lbl span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptable .lbl small{color:var(--faint);font-family:var(--mono);font-size:11px}
+.bars{display:flex;align-items:center;gap:6px;width:112px}
+.bars i{flex:1;height:5px;border-radius:3px;background:var(--hover);position:relative;overflow:hidden}
+.bars i b{position:absolute;inset:0 auto 0 0;background:var(--saffron);border-radius:3px}
+.bars span{font-family:var(--mono);font-size:11px;width:34px;text-align:right;color:var(--muted)}
+
+/* ===== how it works ===== */
+.how{flex:1;min-height:0}
+.localnav{position:sticky;top:0;z-index:5;background:color-mix(in oklch,var(--bg) 78%,transparent);-webkit-backdrop-filter:blur(18px) saturate(170%);backdrop-filter:blur(18px) saturate(170%);border-bottom:1px solid var(--line)}
+.localnav .in{max-width:900px;margin:0 auto;padding:8px 24px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.localnav .in::-webkit-scrollbar{display:none}
+.localnav a{flex:none;font-size:13px;color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:8px}
+.localnav a:hover{background:var(--hover);color:var(--fg)}
+.localnav a.on{color:var(--fg);background:var(--hover);font-weight:560}
+.art{max-width:900px;margin:0 auto;padding:36px 24px 120px}
+.art section{padding-top:56px;scroll-margin-top:56px}
+.art section:first-child{padding-top:8px}
+.art .k{font:500 12.5px var(--mono);color:var(--saffron-ink);display:block;margin-bottom:8px}
+.art h2{font-size:clamp(24px,3vw,32px);line-height:1.15;letter-spacing:-.022em;font-weight:620;margin:0 0 12px;text-wrap:balance}
+.art h3{font-size:17px;letter-spacing:-.01em;font-weight:600;margin:28px 0 8px}
+.art p,.art li{font-size:15.5px;line-height:1.65}
+.art p{margin:0 0 12px;max-width:72ch}
+.art .lede{font-size:18px;color:var(--muted);line-height:1.55;max-width:62ch}
+.art ul,.art ol{padding-left:1.25em;margin:0 0 12px}
+.art li{margin-bottom:6px}
+.art li::marker{color:var(--faint)}
+mark.c{background:var(--wash);color:inherit;box-shadow:inset 0 0 0 1.5px var(--wash-line);border-radius:3px;padding:0 .2em}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:22px 0}
+.stat{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--surface)}
+.stat .v{font-size:30px;font-weight:620;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+.stat .v small{font-size:.48em;color:var(--muted);font-weight:500}
+.stat .l{font-size:13.5px;margin-top:8px;line-height:1.4}
+.stat .s{font-size:12px;color:var(--faint);margin-top:4px}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}
+.cards.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.card{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--surface)}
+.card h4{margin:0 0 6px;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+.card p,.card li{font-size:14px;color:var(--muted);line-height:1.55}
+.card p:last-child,.card ul:last-child{margin-bottom:0}
+.card .lab{font-size:12px;color:var(--faint);display:block;margin-bottom:6px}
+.tblw{overflow-x:auto;border:1px solid var(--line);border-radius:14px;margin:16px 0;background:var(--surface)}
+.tblw table{width:100%;border-collapse:collapse;font-size:14px}
+.tblw th,.tblw td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+.tblw th{font-size:12.5px;font-weight:560;color:var(--muted);background:var(--raised);white-space:nowrap}
+.tblw tr:last-child td{border-bottom:0}
+.tblw td.n,.tblw th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tblw tr.sel td{background:var(--wash)}
+.tblw td small{display:block;color:var(--faint);font-size:12px}
+.tblw th small{display:block;font-weight:400;color:var(--faint);font-size:11.5px}
+.pill{font-size:11.5px;font-weight:560;padding:1px 8px;border-radius:999px;white-space:nowrap}
+.pill.yes{background:var(--good-bg);color:var(--good)} .pill.no{background:var(--hover);color:var(--muted)} .pill.mid{background:var(--warn-bg);color:var(--warn)}
+.steps{list-style:none;padding:0;margin:16px 0;counter-reset:s}
+.steps li{position:relative;padding:0 0 18px 42px;counter-increment:s;margin:0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:500 12px/1 var(--mono);border:1.5px solid var(--line-2);color:var(--muted);background:var(--surface)}
+.steps li::after{content:"";position:absolute;left:12.5px;top:30px;bottom:2px;width:1.5px;background:var(--line)}
+.steps li:last-child::after{display:none}
+.steps li.hot::before{border-color:var(--wash-line);background:var(--wash);color:var(--saffron-ink)}
+.steps b{display:block;font-weight:600;font-size:15px}
+.steps span{display:block;color:var(--muted);font-size:14.5px;line-height:1.55}
+.callout{border-radius:14px;padding:14px 16px;background:var(--wash);box-shadow:inset 0 0 0 1.5px var(--wash-line);margin:16px 0}
+.callout p{margin:0;font-size:15px}
+
+/* architecture explorer */
+.arch{border:1px solid var(--line);border-radius:18px;background:var(--surface);padding:16px;margin:18px 0}
+.lane{margin-bottom:14px}
+.lane > .lt{font-size:12px;color:var(--faint);font-weight:560;margin:0 0 8px 2px}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.flow .arr{color:var(--faint);font-size:13px}
+.node{border:1px solid var(--line-2);background:var(--raised);border-radius:10px;padding:7px 11px;font-size:13px;font-weight:500;color:var(--fg);transition:background-color .15s,border-color .15s,transform .1s ease-out}
+.node:hover{background:var(--hover)}
+.node:active{transform:scale(.97)}
+.node[aria-pressed=true]{background:var(--wash);border-color:var(--wash-line);box-shadow:inset 0 0 0 1px var(--wash-line)}
+.node.ft{border-style:dashed}
+.ndetail{border-top:1px solid var(--line);margin-top:6px;padding-top:14px;min-height:120px}
+.ndetail h4{margin:0 0 6px;font-size:16px}
+.ndetail p{font-size:14.5px;color:var(--muted);margin:0 0 8px}
+.ndetail .facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ndetail .facts span{font-size:12.5px;padding:3px 9px;border-radius:999px;background:var(--hover);color:var(--muted)}
+.mtabs{display:flex;gap:4px;flex-wrap:wrap;padding:4px;border-radius:12px;background:var(--hover);margin:16px 0 4px;width:fit-content;max-width:100%}
+.mtabs [role=tab]{border:0;background:transparent;border-radius:9px;padding:6px 12px;font-size:13.5px;color:var(--muted);transition:background-color .15s,color .15s,transform .1s ease-out}
+.mtabs [role=tab]:active{transform:scale(.97)}
+.mtabs [role=tab][aria-selected=true]{background:var(--seg-on);color:var(--fg);font-weight:560;box-shadow:0 1px 2px oklch(.2 .02 230 / .12)}
+.mnote{font-size:13px;color:var(--faint);margin:8px 0 0}
+.mt th.n{min-width:64px}
+.mt td.lab{min-width:240px}
+.mt td b.best{background:var(--wash);box-shadow:inset 0 0 0 1px var(--wash-line);border-radius:4px;padding:1px 5px;font-weight:600}
+.mt td .ci{display:block;font-size:11.5px;color:var(--faint)}
+.mt tr.live td:first-child,.mt tr.eval td:first-child{box-shadow:inset 3px 0 0 var(--wash-line)}
+.gloss{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 24px;margin-top:10px}
+.gloss div{font-size:13.5px;color:var(--muted);line-height:1.5;padding:6px 0;border-bottom:1px solid var(--line)}
+.gloss b{color:var(--fg);font-weight:600;margin-right:6px}
+@media (max-width:720px){.gloss{grid-template-columns:1fr}}
+.scanfig{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:24px;align-items:start;margin:18px 0}
+.scan{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--raised);aspect-ratio:210/297}
+.scan img{display:block;width:100%;height:auto}
+.scan .hl{position:absolute;box-shadow:inset 0 0 0 2px oklch(.68 .19 48);background:oklch(.92 .12 85 / .25);border-radius:2px}
+.scan .vmsg{position:absolute;inset:0;display:grid;place-items:center}
+figcaption{font-size:12.5px;color:var(--faint);margin-top:8px}
+
+/* access-code dialog */
+dialog{border:0;padding:0;border-radius:20px;background:var(--surface);color:var(--fg);box-shadow:var(--float);width:min(420px,calc(100vw - 32px))}
+dialog::backdrop{background:var(--scrim);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+dialog[open]{animation:pop .24s var(--ease)}
+@keyframes pop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+.dlg{padding:22px}
+.dlg h2{margin:0 0 6px;font-size:19px;letter-spacing:-.015em;font-weight:620}
+.dlg p{margin:0 0 16px;color:var(--muted);font-size:14px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
+.field label{font-size:13px;font-weight:560}
+.inputw{display:flex;align-items:center;border:1px solid var(--line-2);border-radius:var(--r1);background:var(--surface);transition:border-color .15s,box-shadow .15s}
+.inputw:focus-within{border-color:var(--saffron);box-shadow:0 0 0 3px color-mix(in oklch,var(--saffron) 25%,transparent)}
+.inputw input{flex:1;min-width:0;border:0;outline:0;background:transparent;height:40px;padding:0 12px;font-size:15px}
+.inputw.bad{border-color:var(--bad)}
+.ferr{font-size:13px;color:var(--bad);min-height:20px}
+.dlg .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:40;opacity:0;visibility:hidden;transition:opacity .2s,visibility 0s linear .2s}
+.scrim.on{opacity:1;visibility:visible;transition:opacity .2s,visibility 0s}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(8px);background:var(--fg);color:var(--bg);font-size:13.5px;padding:8px 14px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s var(--ease);z-index:70}
+.toast.on{opacity:1;transform:translateX(-50%)}
+
+/* ===== responsive ===== */
+.only-narrow{display:none}
+@media (max-width:1100px){
+  :root{--panel-w:min(460px,46vw)}
+  .app,.app.panel-open,.app.nav-closed,.app.nav-closed.panel-open{grid-template-columns:0 minmax(0,1fr) 0}
+  .nav{position:fixed;inset:0 auto 0 0;width:var(--nav-w);z-index:50;transform:translateX(-102%);transition:transform .3s var(--ease);box-shadow:var(--float)}
+  .app.nav-open .nav{transform:none}
+  .panel{position:fixed;inset:0 0 0 auto;width:min(560px,100vw);z-index:50;transform:translateX(102%);transition:transform .32s var(--ease);box-shadow:var(--float)}
+  .app.panel-open .panel{transform:none}
+  .panel-in{width:100%}
+  .only-narrow{display:inline-flex}
+}
+@media (max-width:720px){
+  .col{padding:8px 16px 20px}
+  .dock{padding:0 12px calc(10px + env(safe-area-inset-bottom))}
+  .hello{padding:5vh 16px 16px}
+  .docs{grid-template-columns:1fr}
+  .chips{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cards,.cards.c3{grid-template-columns:1fr}
+  .scanfig{grid-template-columns:1fr}
+  .art{padding:24px 16px 96px}
+  .localnav .in{padding:8px 12px}
+  .picker > .btn{max-width:170px}
+  .switch .full{display:none}
+  .bubble{max-width:90%}
+  .msg.bot{grid-template-columns:24px minmax(0,1fr);gap:8px}
+  .avatar{width:24px}
+  .hint .long{display:none}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media (prefers-reduced-transparency:reduce){.localnav{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}}
 </style>
 </head>
 <body>
-<main>
-  <header>
-    <h1>Construction documents Q&amp;A</h1>
-    <div class="sub">CPWD GCC 2020 contract · RHB Schedule of Rates 2024 · Rajasthan PWD tender 68/2024-25 (Hindi scan). Every answer cites a clause, item row or tender condition.</div>
-    <form id="f"><input id="q" type="text" placeholder="Ask in English or Hindi" autocomplete="off"><button id="b">Ask</button></form>
-    <div class="examples" id="ex"></div>
-    <form class="gatebox" id="gate"><span>This demo needs an access code:</span><input id="code" type="password" autocomplete="off"><button>Save</button></form>
-  </header>
-  <section class="card" id="out"><div class="sub">Ask a question to see a cited answer.</div></section>
-  <section class="card viewer" id="view"><div class="hint">Click a citation to see the source page, with the cited region highlighted.</div></section>
-</main>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M5 18.5V6.5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H8.5L5 18.5z"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 4 3.5 8.5 12 13l8.5-4.5L12 4z"/><path d="m3.5 12.5 8.5 4.5 8.5-4.5"/><path d="m3.5 16.5 8.5 4.5 8.5-4.5"/></symbol>
+  <symbol id="i-side" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9.5 4.5v15"/></symbol>
+  <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M14.5 4.5v15"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 24 24"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.5 4.5v4h-4"/></symbol>
+  <symbol id="i-trace" viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M7 16V10M12 16V6M17 16v-4"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8.5" cy="12" r="3.5"/><path d="M12 12h8.5M17.5 12v3M20.5 12v2"/></symbol>
+  <symbol id="i-git" viewBox="0 0 24 24"><circle cx="6.5" cy="6" r="2"/><circle cx="6.5" cy="18" r="2"/><circle cx="17.5" cy="8.5" r="2"/><path d="M6.5 8v8M17.5 10.5c0 4-5 3.5-9.4 6.3"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></symbol>
+  <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5M11 8.5v5M8.5 11h5"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 5h5v5M19 5l-8 8"/><path d="M17 13.5V18a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 5 18V8.5A1.5 1.5 0 0 1 6.5 7H11"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4.5 20.5 19h-17L12 4.5z"/><path d="M12 10v4M12 16.8v.2"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8v.2"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.8 5.5 6.5v5c0 4 2.8 7.3 6.5 8.7 3.7-1.4 6.5-4.7 6.5-8.7v-5L12 3.8z"/><path d="m9.2 12.2 2 2 3.7-3.9"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+  <symbol id="i-mark" viewBox="0 0 24 24"><path d="M6 5.5h12M6 10h12M6 14.5h7"/><path d="M5 18.5h9"/></symbol>
+</svg>
+
+<div class="app" id="app">
+  <!-- sidebar -->
+  <aside class="nav" id="nav" aria-label="Sidebar">
+    <div class="nav-in">
+      <div class="brand">
+        <div class="brand-id"><span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 6.5h12M6 11h12M6 15.5h7"/></svg></span><div><b>Construction Docs</b><small>Cited answers</small></div></div>
+        <button class="btn btn-ghost btn-sm icon-btn" id="navClose" aria-label="Close sidebar"><svg class="i"><use href="#i-side"/></svg></button>
+      </div>
+      <button class="btn btn-secondary new" id="newChat"><svg class="i"><use href="#i-plus"/></svg>New chat<kbd>N</kbd></button>
+      <div class="views" role="navigation" aria-label="Views">
+        <button class="btn btn-ghost" data-view="chat" aria-current="page"><svg class="i"><use href="#i-chat"/></svg>Chat</button>
+        <button class="btn btn-ghost" data-view="how"><svg class="i"><use href="#i-layers"/></svg>How it works</button>
+      </div>
+      <h3>Recent</h3>
+      <div class="recents scroll"><ul id="recents"></ul></div>
+      <div class="nav-foot">
+        <div class="corpus">3 documents · 942 pages · 10,025 passages<br>CPWD contract · RHB rates · PWD tender (Hindi scan)</div>
+        <div class="row">
+          <button class="btn btn-ghost btn-sm" id="codeBtn"><svg class="i"><use href="#i-key"/></svg><span id="codeLab">Access code</span></button>
+          <a class="btn btn-ghost btn-sm icon-btn" href="https://github.com/Umarfarook1/coso-construction-rag" target="_blank" rel="noopener" aria-label="Source code on GitHub"><svg class="i"><use href="#i-git"/></svg></a>
+        </div>
+        <div class="seg" role="group" aria-label="Theme">
+          <button data-theme-set="auto" aria-pressed="true">Auto</button><button data-theme-set="light" aria-pressed="false">Light</button><button data-theme-set="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- main -->
+  <main class="main" id="main">
+    <header class="top" id="top">
+      <button class="btn btn-ghost icon-btn" id="navOpen" aria-label="Open sidebar" hidden><svg class="i"><use href="#i-menu"/></svg></button>
+      <div class="title" id="title">New chat</div>
+      <button class="btn btn-ghost icon-btn only-narrow" id="newChat2" aria-label="New chat"><svg class="i"><use href="#i-plus"/></svg></button>
+      <button class="btn btn-ghost icon-btn" id="panelBtn" aria-label="Show sources" aria-pressed="false" hidden><svg class="i"><use href="#i-panel"/></svg></button>
+    </header>
+
+    <section class="view" id="chatView" aria-label="Chat">
+      <div class="thread scroll" id="thread" tabindex="-1"><div class="col" id="msgs" aria-live="polite"></div></div>
+      <div class="dock">
+        <form class="composer" id="composer" autocomplete="off">
+          <label class="sr" for="q">Your question</label>
+          <textarea id="q" rows="1" maxlength="500" placeholder="Ask about a clause, a rate or the tender, in English or Hindi" enterkeyhint="send"></textarea>
+          <div class="bar">
+            <div class="picker" id="picker">
+              <button type="button" class="btn btn-ghost btn-sm" id="modelBtn" aria-haspopup="listbox" aria-expanded="false" aria-controls="modelMenu"><span class="lab" id="modelLab">Model</span><svg class="i"><use href="#i-down"/></svg></button>
+              <div class="menu" id="modelMenu" role="listbox" aria-label="Model that writes the answer" tabindex="-1"></div>
+            </div>
+            <button type="button" class="switch" role="switch" aria-checked="true" id="rerank" title="The reranker reads the question with each candidate passage and reorders them"><span class="track" aria-hidden="true"></span><span>Reranker</span></button>
+            <span class="grow"></span>
+            <span class="count num" id="count" aria-live="polite"></span>
+            <button type="submit" class="btn btn-primary send" id="send" aria-label="Send" disabled><svg class="i"><use href="#i-up"/></svg></button>
+          </div>
+        </form>
+        <div class="hint"><span class="warm" id="warm" hidden><i></i><span></span></span><span class="long">Live demo on Bedrock API models. The fine-tuned reranker is too large for this host: <a href="https://github.com/Umarfarook1/coso-construction-rag/releases/tag/v1.0" target="_blank" rel="noopener">get it on GitHub</a>.</span></div>
+      </div>
+    </section>
+
+    <section class="view how scroll" id="howView" aria-label="How it works" hidden>
+      <nav class="localnav" aria-label="On this page"><div class="in" id="howNav">
+        <a href="#h-overview">Overview</a><a href="#h-data">The data</a><a href="#h-arch">Architecture</a><a href="#h-scans">Reading the scans</a><a href="#h-models">Models</a><a href="#h-ft">Fine-tuning</a><a href="#h-next">Fine-tuning next</a><a href="#h-eval">Evaluation</a><a href="#h-metrics">All metrics</a><a href="#h-limits">Limits</a>
+      </div></nav>
+      <article class="art" id="art">
+
+        <section id="h-overview">
+          <span class="k">Overview</span>
+          <h2>Cited answers over a contract, a rate book and a Hindi tender scan</h2>
+          <p class="lede">Ask a question in English or Hindi. The system finds the exact clause, rate row or tender condition, writes an answer that quotes it, checks every quote and number against the source, and shows you the page with the cited region boxed.</p>
+          <div class="stats">
+            <div class="stat"><div class="v">96.7<small>%</small></div><div class="l">blind questions judged correct with Claude Sonnet 5.5</div><div class="s">30 questions written after the code freeze, run once</div></div>
+            <div class="stat"><div class="v">21<small>/21</small></div><div class="l">answerable blind questions cite the right clause, rate row or condition</div><div class="s">this live demo's configuration</div></div>
+            <div class="stat"><div class="v">16<small>/19</small></div><div class="l">questions that should be declined were declined</div><div class="s">fine-tuned reranker, gold + blind</div></div>
+            <div class="stat"><div class="v">94<small>/94</small></div><div class="l">hand-read numbers on the Hindi scan read correctly</div><div class="s">after three-reader voting</div></div>
+          </div>
+        </section>
+
+        <section id="h-data">
+          <span class="k">01 · The data</span>
+          <h2>From COSO's Drive folder: three documents of three kinds</h2>
+          <p>The shared folder held eleven PDFs: engineering standards, a schedule of rates, a contract, two arbitration judgments and four Hindi documents. Three of them form one workflow a contractor really runs: read the tender, price the work, then live under the contract. Each is hard in a different way.</p>
+          <div class="cards c3">
+            <div class="card"><h4><span class="dot gcc"></span>CPWD contract 2020</h4><p>112 pages, born-digital English. Clause titles sit in the margin and come last in the text stream; the bilingual appendix uses a legacy Hindi font; Schedule F is blank in the template.</p><p><strong>344 passages</strong>, one clause part per page.</p></div>
+            <div class="card"><h4><span class="dot bsr"></span>RHB schedule of rates 2024</h4><p>824 pages of tables. A hierarchy printed flat, "-do-" ditto rows, item numbers that restart in every chapter, notes that change rates.</p><p><strong>9,649 passages</strong>: 8,159 rated rows, 1,158 parent groups, notes.</p></div>
+            <div class="card"><h4><span class="dot nit"></span>Rajasthan PWD tender 68/2024-25</h4><p>6 pages, image-only Hindi scan. No text layer, handwritten fields, fee slabs, a conditional EMD of 0.5% or 2%.</p><p><strong>32 passages</strong>, each with an English twin.</p></div>
+          </div>
+          <div class="tblw"><table>
+            <thead><tr><th>In the folder</th><th class="n">Pages</th><th>Used?</th><th>Why</th></tr></thead>
+            <tbody>
+              <tr class="sel"><td>CPWD General Conditions of Contract 2020</td><td class="n">112</td><td><span class="pill yes">Yes</span></td><td>Claims and delay clauses (2, 5, 25)</td></tr>
+              <tr class="sel"><td>RHB Basic Schedule of Rates 2024</td><td class="n">824</td><td><span class="pill yes">Yes</span></td><td>Hierarchical tables with exact numbers</td></tr>
+              <tr class="sel"><td>Rajasthan PWD e-tender notice 68/2024-25</td><td class="n">6</td><td><span class="pill yes">Yes</span></td><td>The hardest input: a Hindi scan</td></tr>
+              <tr><td>IS 456, IS 13920, IS 875 (Part 3)</td><td class="n">205</td><td><span class="pill no">Next</span></td><td>Scans with broken text layers</td></tr>
+              <tr><td>SP 16 design aids</td><td class="n">255</td><td><span class="pill no">No</span></td><td>Charts and table images; 147 pages without text</td></tr>
+              <tr><td>NHAI v M.G. Contractors; Ssangyong v NHAI</td><td class="n">183</td><td><span class="pill no">Next</span></td><td>Pair with Clauses 2 and 5 for delay claims</td></tr>
+              <tr><td>"PMGSY-III" guidelines and summary</td><td class="n">48</td><td><span class="pill mid">Test case</span></td><td>The scan is the 2011 edition; the summary's text layer is corrupt</td></tr>
+            </tbody>
+          </table></div>
+          <p>Every passage stores its document, PDF page, printed page ("S-21" is PDF page 260), a locator (clause, item or tender condition) and, where the PDF has coordinates, a box. A passage never spans two pages, so a citation always lands on one.</p>
+        </section>
+
+        <section id="h-arch">
+          <span class="k">02 · Architecture</span>
+          <h2>Two halves: read the documents once, then answer each question</h2>
+          <p>Select a stage to see what it does.</p>
+          <div class="arch">
+            <div class="lane"><div class="lt">Once, offline</div><div class="flow" id="flowA"></div></div>
+            <div class="lane"><div class="lt">For every question</div><div class="flow" id="flowB"></div></div>
+            <div class="ndetail" id="ndetail" aria-live="polite"></div>
+          </div>
+          <h3>This live demo calls Bedrock only</h3>
+          <p>We could not deploy the fine-tuned model on this site. It runs on PyTorch, and with the embedder that means about 700 MB of model files and about 2 GB of memory per instance, beyond what this free hosting plan allows. So the live demo calls models through the Amazon Bedrock API with a server-side key, and ships only precomputed search vectors. The repository runs the same pipeline with the two small local models, including the fine-tuned reranker; section 05 compares it with the original model.</p>
+          <div class="callout"><p><strong>Get the fine-tuned model:</strong> <a href="https://github.com/Umarfarook1/coso-construction-rag/releases/tag/v1.0" target="_blank" rel="noopener">GitHub release v1.0</a>, <code>xenc-coso.zip</code> (221 MB, fp16). <code>uv run python scripts/download_model.py</code> fetches it, then <code>uv run cosorag serve</code> runs this same app with it locally.</p></div>
+          <div class="tblw"><table>
+            <thead><tr><th>Stage</th><th>Live demo (this site)</th><th>Evaluated system (repository, local CPU)</th></tr></thead>
+            <tbody>
+              <tr><td>Keyword search, exact ids</td><td colspan="2">BM25 with an id-preserving tokenizer, clause and item lookup, per-document lists</td></tr>
+              <tr><td>Meaning search</td><td>Cohere Embed Multilingual v3, Bedrock (Mumbai)</td><td>multilingual-e5-small</td></tr>
+              <tr class="sel"><td>Reranker</td><td>Cohere Rerank 3.5, Bedrock (Tokyo)</td><td>Fine-tuned cross-encoder, with the review flag</td></tr>
+              <tr><td>Answer writer</td><td colspan="2">Your choice in the chat; Claude Sonnet 5.5 by default</td></tr>
+              <tr><td>Checks and citations</td><td colspan="2">The same verifier and page renderer</td></tr>
+              <tr><td>Gold set, judged correct (Sonnet 5.5)</td><td class="n" id="liveGold">92.7%</td><td class="n">91.7%</td></tr>
+              <tr><td>First question after a quiet spell</td><td>a few seconds</td><td>about 20 s (loads PyTorch and two models)</td></tr>
+            </tbody>
+          </table></div>
+        </section>
+
+        <section id="h-scans">
+          <span class="k">03 · Reading the scans</span>
+          <h2>How the images were read, and how we know they were read right</h2>
+          <div class="scanfig">
+            <figure>
+              <div class="scan" id="scan"><div class="vmsg" id="scanMsg">The page loads with an access code.</div></div>
+              <figcaption>Tender page 1 as the app renders it. The letter number and date are handwritten.</figcaption>
+            </figure>
+            <div>
+              <ol class="steps">
+                <li><b>Check every page's text layer</b><span>"Has a text layer" is not "has usable text". Three cheap signals (orphan vowel signs, private-use characters, glued words) plus a legacy-font word list send bad pages to OCR: the corrupt PMGSY summary, 19 IS 456 pages, the contract's 17 Kruti Dev pages.</span></li>
+                <li><b>Three independent readers</b><span>Claude Sonnet 4.6, Gemma 3 27B and Llama 4 Maverick each transcribe the scan from the image.</span></li>
+                <li class="hot"><b>Vote on every number</b><span>Numbers are aligned across readings by their neighbouring words. Each disagreement goes to a stronger model with the page image and one targeted question: near "<span lang="hi">सांय __ बजे</span>", is it 06.00 or 08.00?</span></li>
+                <li><b>Translate, keeping every digit</b><span>Each segment gets an English twin so English questions find Hindi text. A translation must contain exactly the original's numbers, or it is redone. Citations point at the Hindi page.</span></li>
+              </ol>
+            </div>
+          </div>
+          <div class="callout"><p>The best single reader read the bid deadline <mark class="c">06.00</mark> as 08.00 and a fee slab of <mark class="c">151 lakh</mark> as 161 lakh. Voting caught both; either would change a bid. Against 94 hand-read numeric fields the result is 94 of 94, and the EMDs reconcile: 2% and 0.5% of Rs 286.47 lakh are exactly 5,72,940 and 1,43,235.</p></div>
+          <div class="tblw"><table>
+            <thead><tr><th>OCR engine (6 hand-typed regions, 86 numbers)</th><th class="n">Character error</th><th class="n">Numbers exact</th></tr></thead>
+            <tbody>
+              <tr class="sel"><td>Claude Sonnet 4.6, vision</td><td class="n">0.6%</td><td class="n">86/86</td></tr>
+              <tr><td>Llama 4 Maverick, open weights</td><td class="n">2.0%</td><td class="n">81/86</td></tr>
+              <tr><td>Gemma 3 27B, open weights</td><td class="n">4.3%</td><td class="n">86/86</td></tr>
+              <tr><td>Tesseract 5 Hindi + English</td><td class="n">12.8%</td><td class="n">51/86</td></tr>
+              <tr><td>Pixtral Large</td><td class="n">20.1%</td><td class="n">71/86</td></tr>
+              <tr><td>RapidOCR PP-OCRv5 Devanagari</td><td class="n">22.8%</td><td class="n">78/86</td></tr>
+            </tbody>
+          </table></div>
+          <p>The printed tables in the rate book are read without OCR: generic table extractors recovered only 54% to 56% of hand-checked rows, so a positional parser anchors each row on its item number, rebuilds the parent chain across pages and expands ditto rows. An independently written parser agrees with it on 99.1% of 6,510 rates. When you click a citation, the server opens the PDF page with PyMuPDF and draws the stored box around the cited row.</p>
+        </section>
+
+        <section id="h-models">
+          <span class="k">04 · Models</span>
+          <h2>Which model does what</h2>
+          <p>In this live demo every model runs on Amazon Bedrock. The evaluated system in the repository swaps two of them for small models that run on a CPU next to the code, one of them the fine-tuned reranker. You can switch the answer writer in the chat; retrieval, reranking and the checks stay the same for every choice.</p>
+          <div class="tblw"><table>
+            <thead><tr><th>Model</th><th>Job</th><th>Runs on</th></tr></thead>
+            <tbody>
+              <tr class="sel"><td><strong>The answer writer</strong><small>you choose it in the chat; Claude Sonnet 5.5 by default</small></td><td>Copies quotes from the sources first, then answers with citations</td><td>Amazon Bedrock</td></tr>
+              <tr><td><strong>Cohere Embed Multilingual v3</strong><small>live demo</small></td><td>Turns each question into a vector for meaning search; all 10,025 passages were embedded once</td><td>Amazon Bedrock, Mumbai</td></tr>
+              <tr><td><strong>Cohere Rerank 3.5</strong><small>live demo</small></td><td>Reads the question with each of about 23 candidates and reorders them</td><td>Amazon Bedrock, Tokyo</td></tr>
+              <tr><td><strong>multilingual-e5-small</strong> and the <strong>fine-tuned cross-encoder</strong><small>repository, 118M each</small></td><td>The same two jobs in the evaluated system, plus the review flag</td><td>CPU, next to the app</td></tr>
+              <tr><td>Claude Sonnet 4.6, Gemma 3 27B, Llama 4 Maverick</td><td>Read the scanned tender once, during ingestion</td><td>Amazon Bedrock</td></tr>
+              <tr><td>Claude Sonnet 4.6</td><td>Judges answers in the evaluation; never sees the sources, only the gold answer</td><td>Amazon Bedrock</td></tr>
+            </tbody>
+          </table></div>
+          <h3>Answer writers, measured on the same 96 questions</h3>
+          <div class="tblw"><table id="modelTable"><thead><tr><th>Model</th><th>Weights</th><th>Processed</th><th class="n">Gold, 96</th><th class="n">Blind, 30</th></tr></thead><tbody></tbody></table></div>
+          <p>Judged correct, with the evaluated retrieval and everything else unchanged. The blind set is run once per configuration, so only the two configurations that matter have a blind number.</p>
+        </section>
+
+        <section id="h-ft">
+          <span class="k">05 · Fine-tuning</span>
+          <h2>A cross-encoder fine-tuned to tell the right row from its neighbour</h2>
+          <p>The costliest failure in rates and contracts is a confident answer with a real citation to the wrong row: the Grading 2 rate taken from the wet-mix row, a 2.2 kW pump priced from another chapter. The number check passes, because the wrong number really is in the cited passage. A search model that embeds question and passage separately sees "20 mm" and a "15 mm" row as nearly identical. A cross-encoder reads them together and can learn that the size is the whole point.</p>
+          <ol class="steps">
+            <li><b>Questions from the corpus</b><span>An open model (gpt-oss-120b, Apache 2.0) wrote questions for 1,876 passages: specific, paraphrased, Hindi or Hinglish for English text, English for Hindi text.</span></li>
+            <li class="hot"><b>Near-misses</b><span>For the same passages, questions they do not answer, with one attribute changed: 30 mm to 25 mm, square metre to cubic metre, 4-pole to 3-pole.</span></li>
+            <li><b>Hard negatives</b><span>Mined from the search itself. Sibling rows (same parent, different size) stay in as negatives, because telling them apart is the goal.</span></li>
+            <li><b>No leakage</b><span>Pages were split into fixed blocks before any data existed (60% train, 20% development, 20% test). Training sees only train blocks, verified: zero held-out passages.</span></li>
+            <li><b>Train on a laptop</b><span>9,519 pairs, binary cross-entropy, word embeddings frozen, one epoch: 91 minutes on a 4-core CPU. The flag threshold (0.70) was chosen on development pages only.</span></li>
+          </ol>
+          <div class="cards">
+            <div class="card"><span class="lab">On held-out synthetic questions</span><h4>It learned the task</h4><p>Top-1 accuracy 0.537 with search alone, 0.652 with the cross-encoder off the shelf, 0.708 fine-tuned. Telling a real question from a one-attribute near-miss: AUROC 0.45 off the shelf (worse than chance), <mark class="c">0.84</mark> fine-tuned.</p></div>
+            <div class="card"><span class="lab">End to end, first try</span><h4>It made answers worse, and why</h4><p>Sorting by the fine-tuned score alone, with its threshold telling the writer "nothing answers", dropped accuracy from 83.9% to 80.7%. Real questions are longer than synthetic ones, so 48% of answerable ones scored under 0.70. The fix: fuse its order with the search order and show the score as a review flag. Result: 84.9% gold, 90.0% blind.</p></div>
+          </div>
+          <h3>Fine-tuned against the original model</h3>
+          <div class="tblw"><table>
+            <thead><tr><th>Same cross-encoder, same pipeline</th><th class="n">Original</th><th class="n">Fine-tuned</th></tr></thead>
+            <tbody>
+              <tr><td>Held-out synthetic questions, right passage first (re-sorted)<small>400 questions on test pages never trained on</small></td><td class="n">0.652</td><td class="n">0.708</td></tr>
+              <tr><td>Same, fused with the search order (as used)</td><td class="n">0.590</td><td class="n">0.640</td></tr>
+              <tr class="sel"><td>Telling a real question from a one-attribute near-miss (AUROC)</td><td class="n">0.45</td><td class="n">0.84</td></tr>
+              <tr><td>Answerable vs not, on real gold questions (AUROC)</td><td class="n">0.53</td><td class="n">0.73</td></tr>
+              <tr><td>Gold retrieval, right passage first</td><td class="n">0.821</td><td class="n">0.833</td></tr>
+              <tr><td>Gold set, judged correct (gpt-oss-120b writer)</td><td class="n">86.5%</td><td class="n">84.9%</td></tr>
+              <tr><td>Blind set, judged correct (gpt-oss-120b writer)</td><td class="n">85.0%</td><td class="n">90.0%</td></tr>
+              <tr class="sel"><td>Should-decline questions declined, gold + blind</td><td class="n">11/19</td><td class="n">16/19</td></tr>
+            </tbody>
+          </table></div>
+          <p>The fine-tuned weights are published as <a href="https://github.com/Umarfarook1/coso-construction-rag/releases/tag/v1.0" target="_blank" rel="noopener">GitHub release v1.0</a>; they run locally, not on this site (see section 02).</p>
+          <p>Honest bottom line: fused into retrieval, the fine-tuned model ties the same model off the shelf on accuracy (86.1% each over 126 questions) and declines more of the questions that should be declined (16 of 19 against 11 of 19). A threshold learned on synthetic data is not a deployment threshold; it has to be calibrated on real, labelled questions.</p>
+          <p>Against a hosted reranker: Cohere Rerank 3.5, a much larger commercial model, puts the right passage first more often on the e5 search (0.881 against 0.833). On the Cohere search used in this demo the 118M fine-tuned model is ahead on that measure (0.869 against 0.857) and behind on MRR and nDCG. A model trained in 91 minutes on a laptop stays close to it, and the GPU plan in section 06 is how to pass it. Every number is in section 08, Reranking tab.</p>
+        </section>
+
+        <section id="h-next">
+          <span class="k">06 · Fine-tuning next</span>
+          <h2>How to take the fine-tuning further, with real data and real hardware</h2>
+          <p>The first round ran on synthetic questions and a laptop CPU. With real users, domain experts and GPUs, the plan has six steps. Each step must beat the current system on the gold and blind sets, per document and per question type, before it ships.</p>
+          <ol class="steps">
+            <li><b>Collect real questions</b><span>Log every question with its passages, scores and verifier result. Answers with a low score or a verifier warning go to a review queue, where a quantity surveyor and a contracts manager mark the right passage and the right answer. A few hundred labelled questions a month is enough to start.</span></li>
+            <li class="hot"><b>Calibrate before trusting the score</b><span>Fit the review-flag threshold on those real labels (isotonic or temperature scaling) and track calibration error. Only a calibrated score may decline an answer on its own.</span></li>
+            <li><b>A bigger reranker, trained on GPUs</b><span>Move from a 118M model to a larger multilingual cross-encoder (around 0.5B parameters, the bge-reranker-v2-m3 class), several epochs, a learning-rate sweep, negatives refreshed from production. Distil from a strong judge: let Claude score candidate passages and train the reranker to match. One A10G- or L4-class GPU handles this in hours, not days.</span></li>
+            <li><b>Fine-tune the search model too</b><span>Train the embedder on the same real pairs with in-batch and mined negatives, then retrain the reranker on its output, so the two improvements add up instead of overlapping.</span></li>
+            <li><b>Adapt an open answer writer</b><span>Supervised fine-tuning with LoRA on an open model (gpt-oss-20b or Qwen3 32B) using answers that passed the verifier, the judge and an expert; then preference tuning (DPO) on pairs where one answer declines a near-miss correctly and the other does not. This keeps data in India on self-hosted GPUs and cuts cost per question.</span></li>
+            <li><b>Teach a vision model the scans</b><span>Fine-tune an open vision-language model on Devanagari tenders with boxes, so scanned citations get highlights too and the pipeline no longer needs a closed model as its primary reader.</span></li>
+          </ol>
+          <div class="tblw"><table>
+            <thead><tr><th>What</th><th>Data</th><th>Compute (rough)</th></tr></thead>
+            <tbody>
+              <tr><td>Reranker, ~0.5B</td><td>5k to 50k labelled and mined pairs</td><td>1 GPU (A10G / L4), a few hours per run</td></tr>
+              <tr><td>Embedder</td><td>Same pairs</td><td>1 GPU, about an hour per run</td></tr>
+              <tr><td>Answer writer, LoRA on 20B to 32B</td><td>2k to 10k verified answers + preference pairs</td><td>1 to 2 A100 / H100 80 GB, several hours</td></tr>
+              <tr><td>Scan reader, LoRA on a 7B vision model</td><td>A few hundred annotated tender pages</td><td>1 A100, several hours</td></tr>
+            </tbody>
+          </table></div>
+          <p>Around every run: experiment tracking, versioned datasets, the evaluation sets as a release gate, a shadow deployment that answers real questions without showing them, then a gradual rollout with instant rollback.</p>
+        </section>
+
+        <section id="h-eval">
+          <span class="k">07 · Evaluation</span>
+          <h2>How it was measured</h2>
+          <p>A 96-question development set (32 contract, 36 rates, 28 tender) written from the pages, covering lookups, interpretation, exact rates, child and ditto rows, notes, Hindi and Hinglish, conditional amounts, and questions that should be declined: unanswerable, near-miss and false-premise. A 30-question blind set written after the code freeze, never read while building, run once per configuration. A judge from a different model family grades correctness against the gold answer; a deterministic key-fact check gives a lower bound.</p>
+          <div class="tblw"><table>
+            <thead><tr><th></th><th class="n" colspan="2">This demo<small>Sonnet 5.5, all Bedrock</small></th><th class="n" colspan="2">First submission<small>gpt-oss-120b, fine-tuned reranker</small></th></tr>
+              <tr><th>Measure</th><th class="n">Gold, 96</th><th class="n">Blind, 30</th><th class="n">Gold, 96</th><th class="n">Blind, 30</th></tr></thead>
+            <tbody>
+              <tr class="sel"><td>Judged correct</td><td class="n">92.7%</td><td class="n">96.7%</td><td class="n">84.9%</td><td class="n">90.0%</td></tr>
+              <tr><td>Citation points to the right clause, row or condition</td><td class="n">95.2%</td><td class="n">100%</td><td class="n">92.9%</td><td class="n">95.2%</td></tr>
+              <tr><td>Questions that should be declined, declined</td><td class="n">9/10</td><td class="n">8/9</td><td class="n">8/10</td><td class="n">8/9</td></tr>
+              <tr><td>Answerable questions declined</td><td class="n">8.3%</td><td class="n">4.8%</td><td class="n">4.8%</td><td class="n">4.8%</td></tr>
+            </tbody>
+          </table></div>
+          <div class="tblw"><table>
+            <thead><tr><th>Retrieval, 84 answerable gold questions</th><th class="n">Top 1</th><th class="n">In the top 8</th></tr></thead>
+            <tbody>
+              <tr><td>Keyword search (BM25, id-preserving tokens)</td><td class="n">0.738</td><td class="n">0.905</td></tr>
+              <tr><td>Meaning search (e5-small)</td><td class="n">0.667</td><td class="n">0.881</td></tr>
+              <tr><td>Hybrid: exact ids + both, fused, per-document lists</td><td class="n">0.786</td><td class="n">0.976</td></tr>
+              <tr class="sel"><td>+ fine-tuned cross-encoder, fused (evaluated system)</td><td class="n">0.833</td><td class="n">0.976</td></tr>
+              <tr class="sel"><td>Cohere hybrid + Cohere Rerank 3.5, fused (this demo)</td><td class="n">0.857</td><td class="n">0.976</td></tr>
+            </tbody>
+          </table></div>
+        </section>
+
+        <section id="h-metrics">
+          <span class="k">08 · All metrics</span>
+          <h2>Every stage, every configuration, every standard metric</h2>
+          <p>Computed by <code>evals/all_metrics.py</code> from the evaluation runs in the repository. Retrieval and reranking use the 84 answerable gold questions; a passage counts as relevant when it carries the gold clause or rate item, or sits on the gold tender page. The best value in each column is marked.</p>
+          <div class="mtabs" role="tablist" aria-label="Metric stage" id="mtabs">
+            <button role="tab" aria-selected="true" data-m="retrieval">Retrieval</button>
+            <button role="tab" aria-selected="false" tabindex="-1" data-m="rerank">Reranking</button>
+            <button role="tab" aria-selected="false" tabindex="-1" data-m="gold">Answers, gold</button>
+            <button role="tab" aria-selected="false" tabindex="-1" data-m="blind">Answers, blind</button>
+            <button role="tab" aria-selected="false" tabindex="-1" data-m="ft">Fine-tuning</button>
+            <button role="tab" aria-selected="false" tabindex="-1" data-m="read">Reading the documents</button>
+            <button role="tab" aria-selected="false" tabindex="-1" data-m="guard">Guardrails</button>
+          </div>
+          <div id="mbody" role="tabpanel" aria-live="polite"><p class="mnote">Loading the metrics.</p></div>
+          <h3>What each metric means</h3>
+          <div class="gloss">
+            <div><b>Hit@k</b>At least one relevant passage is in the top k. Hit@8 is what the answer writer gets to see.</div>
+            <div><b>Recall@k</b>Share of the question's gold references (clauses, rows, pages) found in the top k.</div>
+            <div><b>Precision@k</b>Share of the top k passages that are relevant. Low by design: a question usually has one or two right passages.</div>
+            <div><b>MRR@10</b>Mean of 1 / rank of the first relevant passage; 1.0 means it is always first.</div>
+            <div><b>nDCG@10</b>Rewards relevant passages near the top, one gain per gold reference, normalised so a perfect ranking scores 1.</div>
+            <div><b>Page Hit@5</b>The right page is in the top 5, even if the exact clause or row is not.</div>
+            <div><b>AUROC</b>How well a score separates two groups (real vs near-miss questions); 0.5 is chance, 1.0 perfect.</div>
+            <div><b>Judged correct</b>A Claude judge compares the answer with the gold answer; 95% bootstrap interval below the value.</div>
+            <div><b>Key-fact recall</b>Share of the gold key facts found in the answer by plain matching (no model involved).</div>
+            <div><b>All key facts</b>Every key fact found: a strict, deterministic lower bound on correctness.</div>
+            <div><b>Citation hit</b>At least one citation points at the gold clause, rate row or tender page.</div>
+            <div><b>Citation precision</b>Share of an answer's citations that point at gold passages.</div>
+            <div><b>Negatives handled</b>Unanswerable, near-miss and false-premise questions that the answer declined or corrected.</div>
+            <div><b>Refusal precision</b>Of the answers that declined, the share that should have.</div>
+            <div><b>Over-refusal</b>Answerable questions that were declined. Lower is better.</div>
+            <div><b>Unsupported number</b>Answers containing a number that is neither in a cited source nor one arithmetic step away. Lower is better.</div>
+            <div><b>Quotes verified</b>Answers whose every quote was found in the source it was attributed to.</div>
+            <div><b>CER</b>Character error rate of OCR against a hand transcription. Lower is better.</div>
+          </div>
+        </section>
+
+        <section id="h-limits">
+          <span class="k">09 · Limits</span>
+          <h2>What still breaks, and what comes next</h2>
+          <ul>
+            <li><strong>Rate notes are separate passages.</strong> "Add 5% for grade AA pipes" is applied only when retrieval brings the note along. Next: attach each note's scope to the items it modifies.</li>
+            <li><strong>About 3% of rate rows</strong> (unnumbered variants, rate ranges, multi-column hire charges) sit in one record with several rates.</li>
+            <li><strong>Scanned citations have no box</strong>, because vision models return text without coordinates.</li>
+            <li><strong>Schedule F is blank</strong> in this contract template, so "who decides" answers point to it. A real deployment ingests each contract's own Schedule F.</li>
+            <li><strong>The review flag is uncalibrated</strong> and flags about half of real, correct answers. It routes to review; it never blocks.</li>
+            <li><strong>Small test sets</strong> (96 + 30 questions) give intervals of roughly ±8 and ±15 points.</li>
+            <li><strong>The guardrail was tested on 56 messages I wrote</strong>, and its prompt was changed once after the first run. Real traffic will bring messages it has not seen; it searches whenever it is unsure, and logged routes should be reviewed like answers.</li>
+            <li><strong>At scale:</strong> per-page ingestion keyed by content hash, Postgres with pgvector and keyword search filtered by project and version, effective dates on every passage, the test sets as a deploy gate, and a review queue fed by low scores.</li>
+          </ul>
+          <p>Code, design notes and every evaluation run: <a href="https://github.com/Umarfarook1/coso-construction-rag" target="_blank" rel="noopener">github.com/Umarfarook1/coso-construction-rag</a>.</p>
+        </section>
+      </article>
+    </section>
+  </main>
+
+  <!-- sources panel -->
+  <aside class="panel" id="panel" aria-label="Sources" aria-hidden="true" inert>
+    <div class="panel-in">
+      <div class="ph">
+        <div class="t"><b>Sources</b><small id="pFor">Select an answer</small></div>
+        <button class="btn btn-ghost icon-btn" id="panelClose" aria-label="Close sources"><svg class="i"><use href="#i-x"/></svg></button>
+      </div>
+      <div class="ptabs" role="tablist" aria-label="Panel">
+        <button role="tab" id="pt-src" aria-controls="pp-src" aria-selected="true">Sources</button>
+        <button role="tab" id="pt-trace" aria-controls="pp-trace" aria-selected="false" tabindex="-1">How this answer was made</button>
+      </div>
+      <div class="pbody scroll" id="pp-src" role="tabpanel" aria-labelledby="pt-src"></div>
+      <div class="pbody scroll trace" id="pp-trace" role="tabpanel" aria-labelledby="pt-trace" hidden></div>
+    </div>
+  </aside>
+</div>
+<div class="scrim" id="scrim"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<dialog id="codeDlg" aria-labelledby="codeTitle">
+  <form class="dlg" id="codeForm" method="dialog" novalidate>
+    <h2 id="codeTitle">Enter the access code</h2>
+    <p>This demo calls a paid model, so it is behind a code. It came with the link you were sent.</p>
+    <div class="field">
+      <label for="codeIn">Access code</label>
+      <div class="inputw" id="codeWrap">
+        <input id="codeIn" type="password" autocomplete="off" spellcheck="false" aria-describedby="codeErr" required>
+        <button type="button" class="btn btn-ghost btn-sm icon-btn" id="codeShow" aria-label="Show code" aria-pressed="false"><svg class="i"><use href="#i-eye"/></svg></button>
+      </div>
+      <div class="ferr" id="codeErr" aria-live="polite"></div>
+    </div>
+    <div class="acts">
+      <button type="button" class="btn btn-ghost" id="codeCancel">Not now</button>
+      <button type="submit" class="btn btn-primary" id="codeOk">Continue</button>
+    </div>
+  </form>
+</dialog>
+
 <script>
-const EX = ["What is the maximum compensation for delay?", "Rate of a 15 mm CP brass pillar cock?",
-  "Rate of a 20 mm CP brass pillar cock?", "What is the EMD for the Yatri Niwas tender?",
-  "इस निविदा का UBN नंबर क्या है?", "What does Clause 47 say about bonus for early completion?"];
-const ex = document.getElementById("ex");
-EX.forEach(t => { const a = document.createElement("a"); a.textContent = t; a.onclick = () => { q.value = t; ask(); }; ex.appendChild(a); });
-const q = document.getElementById("q"), out = document.getElementById("out"), view = document.getElementById("view"), b = document.getElementById("b");
-document.getElementById("f").onsubmit = e => { e.preventDefault(); ask(); };
-const esc = s => (s || "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-// access code: from a shared link (?code=...), else remembered in this browser; sent as a header, never in URLs
-let code = "";
-try { code = localStorage.getItem("cosorag-code") || ""; } catch (e) {}
+(() => {
+"use strict";
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const narrow = () => matchMedia("(max-width: 1100px)").matches;
+const store = { get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+                set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const isHi = s => /[ऀ-ॿ]/.test(s || "");
+const lang = s => isHi(s) ? ' lang="hi"' : "";
+const icon = n => `<svg class="i"><use href="#i-${n}"/></svg>`;
+const DOC = { gcc: "Contract", bsr: "Rates", nit: "Tender" };
+const app = $("#app");
+
+/* ---------- theme ---------- */
+const root = document.documentElement;
+function setTheme(t, animate) {
+  if (animate && !reduce) { root.classList.add("theming"); setTimeout(() => root.classList.remove("theming"), 350); }
+  root.dataset.theme = t; store.set("cq-theme", t);
+  $$("[data-theme-set]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.themeSet === t)));
+  setTimeout(() => mountOrbs(true), 0);
+}
+setTheme(store.get("cq-theme", "auto"));
+$$("[data-theme-set]").forEach(b => b.addEventListener("click", () => setTheme(b.dataset.themeSet, true)));
+
+/* ---------- thinking orb (thinking-orbs by Jakub Antalik, MIT; the composing orb Hypeon's chat uses) ---------- */
+let orbEngine = null;
+const isDark = () => root.dataset.theme === "dark" || (root.dataset.theme !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+function mountOrbs(redraw) {
+  const list = $$("canvas.orb").filter(c => redraw || !c.dataset.on);
+  if (!list.length) return;
+  (orbEngine = orbEngine || import("/assets/thinking-orbs.js")).then(({ resolvePreset, MODE_DRAWS }) => list.forEach(cv => {
+    const size = +(cv.dataset.size || 20), dpr = Math.min(2, devicePixelRatio || 1), ctx = cv.getContext("2d");
+    const state = cv.dataset.orb === "still" ? "composing" : cv.dataset.orb;
+    const { mode, speed, opts } = resolvePreset(state, size), draw = MODE_DRAWS[mode];
+    if (cv.width !== Math.round(size * dpr)) { cv.width = Math.round(size * dpr); cv.height = Math.round(size * dpr); }
+    const frame = t => { ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, size, size); draw(ctx, size, t, isDark(), opts); };
+    if (cv.dataset.orb === "still" || reduce) { frame(0.6); cv.dataset.on = "1"; return; }
+    if (cv.dataset.on) return;
+    cv.dataset.on = "1";
+    const loop = () => { if (!cv.isConnected) return; if (document.visibilityState !== "hidden") frame(performance.now() / 1000 * speed); requestAnimationFrame(loop); };
+    requestAnimationFrame(loop);
+  })).catch(() => {});
+}
+
+/* ---------- toast ---------- */
+let toastT;
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 1800); }
+
+/* ---------- access code ---------- */
+let code = store.get("cq-code", "");
 const fromLink = new URLSearchParams(location.search).get("code");
-if (fromLink) { code = fromLink; history.replaceState(null, "", location.pathname); }
-const remember = c => { code = c; try { localStorage.setItem("cosorag-code", c); } catch (e) {} };
-if (fromLink) remember(fromLink);
-const gate = document.getElementById("gate");
-gate.onsubmit = e => { e.preventDefault(); remember(document.getElementById("code").value.trim()); gate.style.display = "none"; if (q.value.trim()) ask(); };
-const hdrs = extra => Object.assign(code ? {"x-access-code": code} : {}, extra || {});
-let pageUrl = null;
-async function ask() {
-  if (!q.value.trim()) return;
-  b.disabled = true; out.innerHTML = '<div class="sub">Searching 10,025 passages and checking the answer... (the first question after a quiet spell also loads the models, up to a minute)</div>';
-  try {
-    const res = await fetch("/ask", {method: "POST", headers: hdrs({"content-type": "application/json"}), body: JSON.stringify({question: q.value})});
-    if (res.status === 401) { gate.style.display = "flex"; out.innerHTML = '<div class="status warn">Enter the access code to ask a question.</div>'; b.disabled = false; return; }
-    if (res.status === 429) throw new Error("the daily question limit for this demo is reached; please try again tomorrow");
-    if (!res.ok) throw new Error(`server returned ${res.status}`);
-    const r = await res.json();
-    const st = !r.answerable ? ['na', 'Not answerable from these documents'] : (r.checks.ok ? ['ok', 'Verified against the cited sources'] : (Object.keys(r.checks).length ? ['warn', 'Check warnings: see below'] : ['na', 'Retrieval only (no model configured)']));
-    let h = (r.notice ? `<div class="status warn">${esc(r.notice)}</div>` : "") + `<div class="status ${st[0]}">${st[1]}</div><div class="answer">${esc(r.answer)}</div>`;
-    if (r.missing_ids.length) h += `<div class="meta">${esc(r.missing_ids.join(", "))}: not in the indexed documents</div>`;
-    if (r.checks.unsupported_numbers && r.checks.unsupported_numbers.length) h += `<div class="meta" style="color:var(--warn)">Numbers not found in the cited sources: ${esc(r.checks.unsupported_numbers.join(", "))}</div>`;
-    h += '<div class="cites">' + r.citations.map(c => `<div class="cite" data-id="${esc(c.chunk_id)}" data-v="${c.viewable}"><b>[S${c.n}]</b> ${esc(c.cite)}${c.quote ? `<div class="q">"${esc(c.quote)}"</div>` : ""}</div>`).join("") + '</div>';
-    const t = r.timings || {};
-    h += `<div class="meta">${esc(r.model || "")} · retrieve ${t.retrieve_s ?? 0}s · rerank ${t.rerank_s ?? 0}s · generate ${t.generate_s ?? 0}s${r.gate ? " · gate: " + esc(r.gate) : ""}</div>`;
-    out.innerHTML = h;
-    out.querySelectorAll(".cite").forEach(el => el.onclick = () => show(el.dataset.id, el.dataset.v === "true"));
-    const first = out.querySelector(".cite"); if (first) first.click();
-  } catch (e) { out.innerHTML = `<div class="status warn">Error: ${esc(String(e))}</div>`; }
-  b.disabled = false;
+if (fromLink) { code = fromLink.trim(); store.set("cq-code", code); history.replaceState(null, "", location.pathname + location.hash); }
+let config = { models: [], default: null, access_required: false, pdfs: {} };
+const hdrs = extra => Object.assign(code ? { "x-access-code": code } : {}, extra || {});
+function codeLabel() { $("#codeLab").textContent = !config.access_required ? "No code needed" : (code ? "Access code saved" : "Add access code"); }
+const dlg = $("#codeDlg");
+let afterCode = null;
+function askCode(then) {
+  afterCode = then || null; $("#codeIn").value = ""; $("#codeErr").textContent = ""; $("#codeWrap").classList.remove("bad");
+  if (!dlg.open) dlg.showModal(); setTimeout(() => $("#codeIn").focus(), 30);
 }
-async function show(id, ok) {
-  if (!ok) { view.innerHTML = '<div class="hint">Source PDFs not downloaded. Run scripts/download_corpus.py to view pages.</div>'; return; }
-  view.innerHTML = '<div class="hint">Rendering the page...</div>';
+$("#codeBtn").addEventListener("click", () => config.access_required && askCode());
+$("#codeCancel").addEventListener("click", () => dlg.close());
+$("#codeShow").addEventListener("click", e => {
+  const inp = $("#codeIn"), b = e.currentTarget, show = inp.type === "password";
+  inp.type = show ? "text" : "password"; b.setAttribute("aria-pressed", String(show)); b.setAttribute("aria-label", show ? "Hide code" : "Show code");
+});
+$("#codeForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const v = $("#codeIn").value.trim(), ok = $("#codeOk");
+  if (!v) { $("#codeErr").textContent = "Enter the code to continue."; $("#codeWrap").classList.add("bad"); return; }
+  ok.disabled = true; ok.textContent = "Checking";
   try {
-    const res = await fetch(`/page/${encodeURIComponent(id)}`, {headers: hdrs()});
-    if (!res.ok) throw new Error(res.status === 404 ? "this page is not available here" : `server returned ${res.status}`);
-    if (pageUrl) URL.revokeObjectURL(pageUrl);
-    pageUrl = URL.createObjectURL(await res.blob());
-    view.innerHTML = `<img alt="cited page with the cited region boxed" src="${pageUrl}">`;
-  } catch (e) { view.innerHTML = `<div class="hint">Could not load the page: ${esc(String(e.message || e))}</div>`; }
+    const r = await fetch("/warm", { method: "POST", headers: { "x-access-code": v } });
+    if (r.status === 401) { $("#codeErr").textContent = "That code didn't work. Check it and try again."; $("#codeWrap").classList.add("bad"); return; }
+    code = v; store.set("cq-code", v); codeLabel(); dlg.close(); setWarm(true, "Ready");
+    const f = afterCode; afterCode = null; if (f) f();
+    loadScan();
+  } catch (err) { $("#codeErr").textContent = "Could not reach the server. Check your connection."; }
+  finally { ok.disabled = false; ok.textContent = "Continue"; }
+});
+$("#codeIn").addEventListener("input", () => { $("#codeErr").textContent = ""; $("#codeWrap").classList.remove("bad"); });
+
+/* ---------- warm-up ---------- */
+const warmEl = $("#warm");
+function setWarm(ready, text) { warmEl.hidden = false; warmEl.classList.toggle("ready", ready); $("span", warmEl).textContent = text; if (ready) setTimeout(() => { warmEl.hidden = true; }, 2500); }
+async function warm() {
+  if (config.access_required && !code) return;
+  setWarm(false, "Warming up the models");
+  try { const r = await fetch("/warm", { method: "POST", headers: hdrs() }); if (r.ok) setWarm(true, "Ready"); else warmEl.hidden = true; }
+  catch (e) { warmEl.hidden = true; }
 }
+
+/* ---------- model picker ---------- */
+let model = store.get("cq-model", null), rerankOn = store.get("cq-rerank", true);
+const menu = $("#modelMenu"), mBtn = $("#modelBtn");
+const mLabel = slug => (config.models.find(m => m.slug === slug) || {}).label || slug || "";
+function renderMenu() {
+  const ms = config.models;
+  if (!ms.length) { $("#modelLab").textContent = "Retrieval only"; mBtn.disabled = true; return; }
+  if (!ms.some(m => m.slug === model)) model = config.default;
+  $("#modelLab").textContent = mLabel(model);
+  menu.innerHTML = `<div class="mh">Model that writes the answer</div>` + ms.map((m, i) => `
+    <div role="option" id="opt-${i}" data-slug="${esc(m.slug)}" aria-selected="${m.slug === model}">
+      <b>${esc(m.label)}${m.slug === config.default ? ' <span class="tag">Default</span>' : ""}${m.open_weights ? ' <span class="tag open">Open weights</span>' : ""}</b>
+      <span class="sc">${m.blind != null ? (m.blind * 100).toFixed(1) + "% blind · " : ""}${m.gold != null ? (m.gold * 100).toFixed(1) + "% gold" : ""} <svg class="i ck"><use href="#i-check"/></svg></span>
+      <span class="d">${esc(m.blurb)}${m.where ? " · " + esc(m.where) : ""}</span>
+    </div>`).join("") + `<div class="mf">Search, the fine-tuned reranker and the checks are the same for every model. Judged correct on 96 development (gold) and 30 blind questions.</div>`;
+  $$("[role=option]", menu).forEach(o => o.addEventListener("click", () => pick(o.dataset.slug)));
+}
+function pick(slug) { model = slug; store.set("cq-model", slug); renderMenu(); closeMenu(); mBtn.focus(); }
+let active = -1;
+function openMenu() {
+  menu.classList.add("open"); mBtn.setAttribute("aria-expanded", "true");
+  const opts = $$("[role=option]", menu); active = Math.max(0, opts.findIndex(o => o.getAttribute("aria-selected") === "true")); mark(opts);
+  menu.focus();
+}
+function closeMenu() { menu.classList.remove("open"); mBtn.setAttribute("aria-expanded", "false"); }
+function mark(opts) { opts.forEach((o, i) => o.classList.toggle("active", i === active)); if (opts[active]) menu.setAttribute("aria-activedescendant", opts[active].id); }
+mBtn.addEventListener("click", e => { e.stopPropagation(); menu.classList.contains("open") ? closeMenu() : openMenu(); });
+menu.addEventListener("keydown", e => {
+  const opts = $$("[role=option]", menu);
+  if (e.key === "ArrowDown") { e.preventDefault(); active = (active + 1) % opts.length; mark(opts); }
+  else if (e.key === "ArrowUp") { e.preventDefault(); active = (active - 1 + opts.length) % opts.length; mark(opts); }
+  else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (opts[active]) pick(opts[active].dataset.slug); }
+  else if (e.key === "Escape" || e.key === "Tab") { closeMenu(); if (e.key === "Escape") mBtn.focus(); }
+});
+document.addEventListener("click", e => { if (!$("#picker").contains(e.target)) closeMenu(); });
+const rr = $("#rerank");
+function renderRerank() { rr.setAttribute("aria-checked", String(rerankOn)); }
+rr.addEventListener("click", () => { rerankOn = !rerankOn; store.set("cq-rerank", rerankOn); renderRerank(); toast(rerankOn ? "Reranker on" : "Reranker off: search order only"); });
+renderRerank();
+
+/* ---------- chats (kept in this browser only) ---------- */
+let chats = store.get("cq-chats", []), cur = null, pending = null;
+const save = () => store.set("cq-chats", chats.slice(0, 30));
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+function current() { return chats.find(c => c.id === cur); }
+function renderRecents() {
+  const ul = $("#recents");
+  if (!chats.length) { ul.innerHTML = '<li class="empty">Your questions will appear here.</li>'; return; }
+  ul.innerHTML = chats.map(c => `<li><a href="#" data-id="${c.id}" aria-current="${c.id === cur}"${lang(c.title)}>${esc(c.title)}</a>
+    <button class="btn btn-ghost btn-sm icon-btn del" data-del="${c.id}" aria-label="Delete chat: ${esc(c.title)}">${icon("trash")}</button></li>`).join("");
+  $$("a[data-id]", ul).forEach(a => a.addEventListener("click", e => { e.preventDefault(); openChat(a.dataset.id); if (narrow()) setNav(false); }));
+  $$("[data-del]", ul).forEach(b => b.addEventListener("click", () => {
+    chats = chats.filter(c => c.id !== b.dataset.del); save();
+    if (cur === b.dataset.del) startNew(); else renderRecents();
+    toast("Chat deleted");
+  }));
+}
+function startNew() { cur = null; renderThread(); renderRecents(); setPanel(false); showView("chat"); $("#q").focus(); }
+function openChat(id) { cur = id; renderThread(); renderRecents(); showView("chat"); const last = lastAnswerIndex(); if (last >= 0 && !narrow()) selectAnswer(last, 0, false); }
+function lastAnswerIndex() { const c = current(); if (!c) return -1; for (let i = c.messages.length - 1; i >= 0; i--) if (c.messages[i].role === "bot" && c.messages[i].data && !routed(c.messages[i].data)) return i; return -1; }
+
+/* ---------- rendering answers ---------- */
+const CITE = /[\[(]\s*(S\d+(?:\s*[,;&]\s*S?\d+)*)\s*[\])]/g;
+function inline(s, mi) {
+  let h = esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  return h.replace(CITE, (m, grp) => grp.match(/\d+/g).map(n => `<button class="ref" data-m="${mi}" data-n="${n}" aria-label="Source ${n}">${n}</button>`).join(""));
+}
+function rich(text, mi) {
+  const lines = String(text || "").split(/\n/), out = []; let list = null, para = [];
+  const flush = () => { if (para.length) { out.push(`<p>${inline(para.join(" "), mi)}</p>`); para = []; } };
+  const close = () => { if (list) { out.push(`</${list}>`); list = null; } };
+  for (const raw of lines) {
+    const l = raw.trim(), ul = /^[-*•]\s+(.*)/.exec(l), ol = /^(\d+)[.)]\s+(.*)/.exec(l);
+    if (!l) { flush(); close(); continue; }
+    if (ul || ol) { flush(); const t = ul ? "ul" : "ol"; if (list !== t) { close(); out.push(`<${t}>`); list = t; } out.push(`<li>${inline(ul ? ul[1] : ol[2], mi)}</li>`); continue; }
+    close(); para.push(l);
+  }
+  flush(); close();
+  return out.join("");
+}
+const routed = d => !!(d && d.route && d.route !== "docs");
+const ROUTE_TXT = { greeting: "Not a document question, so nothing was searched", about: "About this assistant, so nothing was searched",
+  off_topic: "Outside these three documents, so nothing was searched" };
+function routerName(by) {
+  if (!by || by === "rules") return "a fixed list of greetings, no model call";
+  if (by === "fallback") return "router reply unusable, treated as a document question";
+  if (by === "none") return "no router model configured";
+  return /haiku-5-5/.test(by) ? "Claude Haiku 5.5" : by.replace(/^bedrock:/, "");
+}
+const NEXT = ["What is the maximum compensation for delay, and who decides it?", "Rate of a 15 mm CP brass pillar cock?", "इस निविदा का UBN नंबर क्या है?"];
+function routedHTML(m, mi) {
+  const d = m.data, t = d.timings || {}, secs = Number(t.route_s) || 0;
+  return `<div class="who">Assistant</div>
+    <div class="answer"${lang(d.answer)}>${rich(d.answer, mi)}</div>
+    ${d.route === "docs" ? "" : `<div class="next-chips">${NEXT.map(q => `<button data-ask="${esc(q)}"${lang(q)}>${esc(q)}</button>`).join("")}</div>`}
+    <div class="meta-row"><span class="status plain" title="Routed by ${esc(routerName(d.route_by))}">${icon("shield")}${ROUTE_TXT[d.route] || "Not a document question"}</span></div>
+    <div class="actions"><button class="btn btn-ghost btn-sm icon-btn" data-copy="${mi}" aria-label="Copy reply">${icon("copy")}</button>
+      <button class="btn btn-ghost btn-sm icon-btn" data-retry="${mi}" aria-label="Ask again">${icon("redo")}</button>
+      <span class="time num">${d.route_by === "rules" ? "instant" : secs.toFixed(1) + " s"}</span></div>`;
+}
+function chipCite(c) { return shortCite(c).replace(/ \(PDF p\. \d+\)/, "").replace(/^Item /, ""); }
+function shortCite(c) { const p = String(c.cite || "").split(", "); return p.length > 1 ? p.slice(1).join(", ") : c.cite; }
+function statusOf(d) {
+  if (d.notice || !d.model_slug && !d.model) return ["plain", "info", "Retrieval only: cited passages, no written answer"];
+  if (!d.answerable) return ["na", "info", "Not answered by these documents"];
+  if (d.checks && d.checks.ok) return ["ok", "check", `Verified against ${d.citations.length} source${d.citations.length === 1 ? "" : "s"}`];
+  return ["warn", "alert", "Check this answer against the sources"];
+}
+function totalTime(t) { t = t || {}; return ["route_s", "rewrite_s", "retrieve_s", "rerank_s", "generate_s"].reduce((a, k) => a + (k === "route_s" && t.route_parallel ? 0 : Number(t[k]) || 0), 0); }
+function wallTime(t) { t = t || {}; return Number(t.total_s) || totalTime(t); }
+function botHTML(m, mi) {
+  const d = m.data;
+  if (m.error) return `<div class="err"><span>${esc(m.error)}</span><button class="btn btn-secondary btn-sm" data-retry="${mi}">${icon("redo")}Try again</button></div>`;
+  if (routed(d)) return routedHTML(m, mi);
+  const [cls, ic, txt] = statusOf(d);
+  const missing = (d.missing_ids || []).length ? `<div class="note-line">${icon("info")}<span>${esc(d.missing_ids.join(", "))}: not in the indexed documents.</span></div>` : "";
+  const flag = d.flag ? `<div class="note-line warn">${icon("alert")}<span>Low match confidence (${(d.gate_score ?? 0).toFixed(2)}, threshold 0.70): check the cited page before relying on this.</span></div>` : "";
+  const rew = d.standalone ? `<div class="note-line">${icon("info")}<span>Searched for: <em${lang(d.standalone)}>${esc(d.standalone)}</em></span></div>` : "";
+  const notice = d.notice ? `<div class="note-line warn">${icon("alert")}<span>${esc(d.notice)}</span></div>` : "";
+  const srcs = (d.citations || []).length ? `<div class="sources">` + d.citations.map(c => `<button class="src-chip" data-m="${mi}" data-n="${c.n}" title="${esc(c.cite)}"><span class="n">${c.n}</span><span class="dot ${esc(c.doc)}" aria-hidden="true"></span><span class="t">${esc(chipCite(c))}</span></button>`).join("") + `</div>` : "";
+  const t = wallTime(d.timings);
+  return `<div class="who">${esc(mLabel(d.model_slug) || "Retrieval only")}${d.rerank === false ? " · reranker off" : ""}</div>
+    ${rew}<div class="answer"${lang(d.answer)}>${rich(d.answer, mi)}</div>
+    ${srcs}<div class="meta-row"><span class="status ${cls}">${icon(ic)}${txt}</span></div>${flag}${missing}${notice}
+    <div class="actions"><button class="btn btn-ghost btn-sm icon-btn" data-copy="${mi}" aria-label="Copy answer">${icon("copy")}</button>
+      <button class="btn btn-ghost btn-sm icon-btn" data-retry="${mi}" aria-label="Ask again">${icon("redo")}</button>
+      <button class="btn btn-ghost btn-sm" data-trace="${mi}">${icon("trace")}How this was made</button>
+      <span class="time num">${t ? t.toFixed(1) + " s" : ""}${d.timings && d.timings.cached ? " · cached" : ""}</span></div>`;
+}
+function emptyHTML() {
+  const S = [
+    ["What is the maximum compensation for delay, and who decides it?", "gcc", "Contract · Clause 2"],
+    ["Rate of a 15 mm CP brass pillar cock?", "bsr", "Rates · two real rows"],
+    ["What is the EMD for the Yatri Niwas tender?", "nit", "Tender · Hindi scan"],
+    ["इस निविदा का UBN नंबर क्या है?", "nit", "Tender · asked in Hindi"],
+    ["Rate of a 20 mm CP brass pillar cock?", "bsr", "Not listed: watch it say so"],
+    ["What does Clause 47 say about bonus for early completion?", "gcc", "Clause 47 does not exist"],
+  ];
+  const needCode = config.access_required && !code ? `<div class="banner"><span>This demo needs an access code. It came with the link you were sent.</span><button class="btn btn-primary btn-sm" id="bannerCode">${icon("key")}Enter code</button></div>` : "";
+  return `<div class="hello appear">${needCode}
+    <canvas class="orb orb64" data-orb="breathing" data-size="64" style="width:64px;height:64px" aria-hidden="true"></canvas>
+    <h1>Ask the contract, the rate book or the tender</h1>
+    <p class="sub">Every answer quotes its source and points to the exact clause, rate row or tender condition. Click a citation to see the page with the cited region boxed.</p>
+    <div class="docs">
+      <div class="doc"><div class="h"><span class="dot gcc"></span>CPWD contract 2020</div><p>General Conditions of Contract · 112 pages</p></div>
+      <div class="doc"><div class="h"><span class="dot bsr"></span>RHB schedule of rates 2024</div><p>8,159 rated items · 824 pages</p></div>
+      <div class="doc"><div class="h"><span class="dot nit"></span>Rajasthan PWD tender</div><p>Notice 68/2024-25 · Hindi scan · 6 pages</p></div>
+    </div>
+    <div class="about">${icon("info")}<div><b>About this live demo.</b> Every model here is called through the Amazon Bedrock API: Claude Sonnet 5.5 writes the answers, Cohere models search and rerank. The cross-encoder we fine-tuned on this corpus is not deployed on this site: with PyTorch it needs about 2 GB of memory and 700 MB of model files, more than this free host allows. It is published on <a href="https://github.com/Umarfarook1/coso-construction-rag/releases/tag/v1.0" target="_blank" rel="noopener">GitHub (release v1.0)</a>, runs with <code>cosorag serve</code>, and <a href="#how" data-goto="h-ft">How it works</a> compares it with the original model.</div></div>
+    <div class="suggest"><h2>Try one</h2><div class="chips">${S.map(s => `<button class="chip" data-ask="${esc(s[0])}"><span${lang(s[0])}>${esc(s[0])}</span><small><span class="dot ${s[1]}"></span>${esc(s[2])}</small></button>`).join("")}</div></div>
+  </div>`;
+}
+function renderThread() {
+  const c = current(), box = $("#msgs");
+  $("#title").innerHTML = c ? `<span${lang(c.title)}>${esc(c.title)}</span>` : "New chat";
+  if (!c) { box.innerHTML = emptyHTML(); wireEmpty(); mountOrbs(); $("#panelBtn").hidden = true; return; }
+  box.innerHTML = c.messages.map((m, i) => m.role === "user"
+    ? `<div class="msg user"><div class="bubble"${lang(m.text)}>${esc(m.text)}</div></div>`
+    : `<div class="msg bot${m.data && routed(m.data) ? " routed" : ""}" data-i="${i}"><div class="avatar" aria-hidden="true"><canvas class="orb" data-orb="${m.pending ? "composing" : "still"}" style="width:20px;height:20px"></canvas></div><div>${m.pending ? thinkingHTML() : botHTML(m, i)}</div></div>`).join("");
+  wireThread(); $("#panelBtn").hidden = lastAnswerIndex() < 0;
+  mountOrbs(); scrollEnd();
+}
+function thinkingHTML() { return `<div class="thinking" role="status"><div><span id="thinkText">Searching 10,025 passages</span><small id="thinkSub"></small></div></div>`; }
+function wireEmpty() {
+  $$("[data-ask]").forEach(b => b.addEventListener("click", () => send(b.dataset.ask)));
+  $$("[data-goto]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); showView("how"); setTimeout(() => { const t = document.getElementById(a.dataset.goto); if (t) howView.scrollTo({ top: howView.scrollTop + t.getBoundingClientRect().top - howView.getBoundingClientRect().top - 44 }); }, 30); }));
+  const bc = $("#bannerCode"); if (bc) bc.addEventListener("click", () => askCode(() => renderThread()));
+}
+function wireThread() {
+  const box = $("#msgs");
+  $$(".ref,.src-chip", box).forEach(b => b.addEventListener("click", () => selectAnswer(+b.dataset.m, +b.dataset.n, true)));
+  $$("[data-trace]", box).forEach(b => b.addEventListener("click", () => { selectAnswer(+b.dataset.trace, null, true); setTab("trace"); }));
+  $$("[data-copy]", box).forEach(b => b.addEventListener("click", async () => {
+    const d = current().messages[+b.dataset.copy].data;
+    const txt = routed(d) ? d.answer : d.answer.replace(CITE, "") + "\n\n" + (d.citations || []).map(c => `[${c.n}] ${c.cite}`).join("\n");
+    try { await navigator.clipboard.writeText(txt); toast("Answer and sources copied"); } catch (e) { toast("Copy is blocked in this browser"); }
+  }));
+  $$("[data-retry]", box).forEach(b => b.addEventListener("click", () => retry(+b.dataset.retry)));
+  $$(".next-chips [data-ask]", box).forEach(b => b.addEventListener("click", () => send(b.dataset.ask)));
+}
+const thread = $("#thread");
+function scrollEnd() { requestAnimationFrame(() => thread.scrollTo({ top: thread.scrollHeight, behavior: reduce ? "auto" : "smooth" })); }
+thread.addEventListener("scroll", () => $("#top").classList.toggle("edge", thread.scrollTop > 4), { passive: true });
+
+/* ---------- asking ---------- */
+let ctrl = null, timer = null;
+function pastTurns(c, upto) {
+  const h = [];
+  for (let i = 0; i < upto; i++) {
+    const m = c.messages[i];
+    if (m.role === "user" && c.messages[i + 1] && c.messages[i + 1].data && !routed(c.messages[i + 1].data) && i + 1 < upto) h.push({ question: m.text.slice(0, 500), answer: (c.messages[i + 1].data.answer || "").slice(0, 1500) });
+  }
+  return h.slice(-3);
+}
+async function send(text) {
+  text = (text || "").trim();
+  if (!text || pending) return;
+  if (config.access_required && !code) { askCode(() => send(text)); return; }
+  let c = current();
+  if (!c) { c = { id: newId(), title: text.slice(0, 80), created: Date.now(), messages: [] }; chats.unshift(c); cur = c.id; }
+  c.messages.push({ role: "user", text });
+  c.messages.push({ role: "bot", pending: true });
+  $("#q").value = ""; grow(); updateSend();
+  renderThread(); renderRecents();
+  await run(c, c.messages.length - 1, text);
+}
+async function run(c, bi, text) {
+  pending = { chat: c.id, i: bi };
+  setBusy(true);
+  const t0 = Date.now();
+  timer = setInterval(() => {
+    const s = Math.round((Date.now() - t0) / 1000), tt = $("#thinkText"), sub = $("#thinkSub");
+    if (!tt) return;
+    tt.textContent = s < 4 ? "Searching 10,025 passages" : `Reading the sources and checking the answer · ${s} s`;
+    if (s >= 10 && sub) sub.textContent = "The first question after a quiet spell also loads the models; that can take 20 to 30 seconds.";
+  }, 500);
+  ctrl = new AbortController();
+  const body = { question: text, model: model || undefined, rerank: rerankOn, history: pastTurns(c, bi - 1) };
+  let msg;
+  try {
+    const r = await fetch("/ask", { method: "POST", headers: hdrs({ "content-type": "application/json" }), body: JSON.stringify(body), signal: ctrl.signal });
+    if (r.status === 401) { c.messages.splice(bi - 1, 2); save(); finish(); if (!c.messages.length) { chats = chats.filter(x => x.id !== c.id); cur = null; save(); } renderThread(); renderRecents(); askCode(() => send(text)); return; }
+    if (r.status === 429) throw new Error("The daily question limit for this demo is reached. Please try again tomorrow.");
+    if (r.status === 422) throw new Error("That question could not be processed. Keep it under 500 characters.");
+    if (!r.ok) throw new Error(`The server returned an error (${r.status}). Try again in a moment.`);
+    const d = await r.json(); d.rerank = rerankOn;
+    msg = { role: "bot", data: d };
+  } catch (e) {
+    msg = { role: "bot", error: e.name === "AbortError" ? "Stopped." : (e.message && !/fetch/i.test(e.message) ? e.message : "Could not reach the server. Check your connection and try again."), q: text };
+  }
+  c.messages[bi] = msg; save(); finish();
+  if (cur === c.id) {
+    renderThread();
+    if (msg.data && msg.data.citations && msg.data.citations.length && !narrow()) selectAnswer(bi, msg.data.citations[0].n, false);
+  }
+}
+function finish() { clearInterval(timer); pending = null; ctrl = null; setBusy(false); }
+function retry(i) {
+  const c = current(); if (!c || pending) return;
+  const q = c.messages[i - 1] && c.messages[i - 1].text; if (!q) return;
+  c.messages[i] = { role: "bot", pending: true }; renderThread(); run(c, i, q);
+}
+const ta = $("#q"), sendBtn = $("#send");
+function setBusy(b) {
+  sendBtn.innerHTML = icon(b ? "stop" : "up"); sendBtn.setAttribute("aria-label", b ? "Stop" : "Send");
+  sendBtn.type = b ? "button" : "submit"; updateSend();
+}
+function updateSend() {
+  const n = ta.value.length, cnt = $("#count");
+  cnt.textContent = n > 400 ? `${n}/500` : ""; cnt.classList.toggle("over", n >= 500);
+  sendBtn.disabled = !pending && !ta.value.trim();
+}
+function grow() { ta.style.height = "auto"; ta.style.height = Math.min(200, ta.scrollHeight) + "px"; }
+ta.addEventListener("input", () => { grow(); updateSend(); });
+ta.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); if (!pending) send(ta.value); } });
+$("#composer").addEventListener("submit", e => { e.preventDefault(); if (!pending) send(ta.value); });
+sendBtn.addEventListener("click", e => { if (pending && ctrl) { e.preventDefault(); ctrl.abort(); } });
+
+/* ---------- sources panel ---------- */
+let sel = { m: -1, n: null }, tab = "src";
+const pageCache = new Map();
+function setPanel(open) {
+  app.classList.toggle("panel-open", open); $("#panel").setAttribute("aria-hidden", String(!open)); $("#panel").inert = !open;
+  $("#panelBtn").setAttribute("aria-pressed", String(open)); $("#panelBtn").setAttribute("aria-label", open ? "Hide sources" : "Show sources");
+  $("#scrim").classList.toggle("on", open && narrow() || app.classList.contains("nav-open") && narrow());
+}
+function setTab(t) {
+  tab = t;
+  [["src", "pt-src", "pp-src"], ["trace", "pt-trace", "pp-trace"]].forEach(([k, tb, pn]) => {
+    const on = k === t; $("#" + tb).setAttribute("aria-selected", String(on)); $("#" + tb).tabIndex = on ? 0 : -1; $("#" + pn).hidden = !on;
+  });
+}
+$$(".ptabs [role=tab]").forEach((b, i, all) => {
+  b.addEventListener("click", () => setTab(b.id === "pt-src" ? "src" : "trace"));
+  b.addEventListener("keydown", e => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); const o = all[(i + 1) % 2]; o.click(); o.focus(); } });
+});
+function selectAnswer(mi, n, open) {
+  const c = current(); if (!c || !c.messages[mi] || !c.messages[mi].data) return;
+  const d = c.messages[mi].data;
+  sel = { m: mi, n: n == null ? (sel.m === mi ? sel.n : (d.citations[0] || {}).n) : n };
+  $("#pFor").innerHTML = `<span${lang(c.messages[mi - 1].text)}>${esc(c.messages[mi - 1].text)}</span>`;
+  renderSources(d); renderTrace(d);
+  if (open || !narrow()) { setPanel(true); if (n != null) setTab("src"); }
+  $$("#msgs .ref, #msgs .src-chip").forEach(b => b.classList.toggle("on", +b.dataset.m === sel.m && +b.dataset.n === sel.n));
+}
+function renderSources(d) {
+  const box = $("#pp-src"), cits = d.citations || [];
+  if (!cits.length) { box.innerHTML = `<div class="vmsg">This answer has no citations${d.answerable ? "" : ", because the documents do not answer the question"}.</div>`; return; }
+  const c = cits.find(x => x.n === sel.n) || cits[0];
+  box.innerHTML = `<div class="viewer">
+      <div class="vh"><span class="dot ${esc(c.doc)}" aria-hidden="true"></span><div class="t"><b>${esc(shortCite(c))}</b><small>${esc((c.cite || "").split(", ")[0])}</small></div>
+        <button class="btn btn-ghost btn-sm icon-btn" id="zoomBtn" aria-label="Zoom the page" aria-pressed="false">${icon("zoom")}</button>
+        <a class="btn btn-ghost btn-sm icon-btn" id="openImg" aria-label="Open the page image in a new tab" target="_blank" rel="noopener" hidden>${icon("ext")}</a></div>
+      <div class="vimg scroll" id="vimg"><div class="skel"></div></div></div>
+    <div class="slist">${cits.map(x => `<button class="scard${x.n === c.n ? " on" : ""}" data-n="${x.n}"><span class="n">${x.n}</span>
+      <span class="l"><span class="dot ${esc(x.doc)}" aria-hidden="true"></span>${esc(DOC[x.doc] || "")} · ${esc(shortCite(x))}</span>
+      <span class="q"${lang(x.quote)}>${x.quote ? "“" + esc(x.quote) + "”" : esc((x.cite || ""))}</span></button>`).join("")}</div>`;
+  $$(".scard", box).forEach(b => b.addEventListener("click", () => selectAnswer(sel.m, +b.dataset.n, true)));
+  $("#zoomBtn").addEventListener("click", e => { const on = $("#vimg").classList.toggle("zoom"); e.currentTarget.setAttribute("aria-pressed", String(on)); });
+  loadPage(c);
+}
+async function loadPage(c) {
+  const v = $("#vimg"), id = c.chunk_id;
+  if (!c.viewable) { v.innerHTML = `<div class="vmsg">The source PDF is not on this server. Run <code>scripts/download_corpus.py</code> to view pages locally.</div>`; return; }
+  try {
+    let url = pageCache.get(id);
+    if (!url) {
+      const r = await fetch("/page/" + encodeURIComponent(id), { headers: hdrs() });
+      if (r.status === 401) { v.innerHTML = `<div class="vmsg">Enter the access code to see the page.</div>`; return; }
+      if (!r.ok) throw new Error(String(r.status));
+      url = URL.createObjectURL(await r.blob()); pageCache.set(id, url);
+    }
+    if ($("#vimg") !== v) return;
+    v.innerHTML = `<img alt="Page ${esc(c.pdf_page)} with the cited region boxed in orange" src="${url}">`;
+    const o = $("#openImg"); if (o) { o.href = url; o.hidden = false; }
+    if (c.bboxes && c.bboxes.length) {
+      const img = $("img", v);
+      img.addEventListener("load", () => { const y = c.bboxes[0][1] / 842 * img.clientHeight; v.scrollTop = Math.max(0, y - 120); }, { once: true });
+    }
+  } catch (e) { v.innerHTML = `<div class="vmsg">Could not load the page. Try again.</div>`; }
+}
+function renderTrace(d) {
+  const t = d.timings || {}, parts = [[t.route_parallel ? "" : "route_s", "Route + rewrite", "var(--muted)"], ["rewrite_s", "Follow-up rewrite", "var(--muted)"], ["retrieve_s", "Search", "var(--gcc)"], ["rerank_s", "Rerank", "var(--saffron)"], ["generate_s", "Write + check", "var(--bsr)"]];
+  const tot = totalTime(t) || 1;
+  const bar = parts.filter(p => t[p[0]]).map(p => `<span style="width:${(t[p[0]] / tot * 100).toFixed(1)}%;background:${p[2]}" title="${p[1]} ${Number(t[p[0]]).toFixed(2)} s"></span>`).join("");
+  const leg = parts.filter(p => t[p[0]]).map(p => `<span><i style="background:${p[2]}"></i>${p[1]} ${Number(t[p[0]]).toFixed(1)} s</span>`).join("");
+  const gs = d.gate_score;
+  const rows = (d.passages || []).map((p, i) => `<tr><td class="num" style="color:var(--faint)">${i + 1}</td>
+    <td class="lbl"><span><span class="dot ${esc(p.doc)}" style="display:inline-block;margin-right:6px"></span>${esc(p.label)}</span><small>${esc(p.chunk_id)}${p.ranks.bm25 ? " · keyword #" + p.ranks.bm25 : ""}${p.ranks.dense ? " · meaning #" + p.ranks.dense : ""}</small></td>
+    <td>${p.pinned ? '<span class="tag">exact id</span>' : (p.xenc == null ? "" : `<div class="bars"><i><b style="width:${(p.xenc * 100).toFixed(1)}%"></b></i><span>${p.xenc.toFixed(2)}</span></div>`)}</td></tr>`).join("");
+  const ck = d.checks || {};
+  $("#pp-trace").innerHTML = `
+    <h4>Model</h4><dl class="kv"><dt>Router</dt><dd>document question · ${esc(routerName(d.route_by))}${t.route_s ? ` · ${Number(t.route_s).toFixed(1)} s${t.route_parallel ? ", alongside the search" : ""}` : ""}</dd>
+      <dt>Writer</dt><dd>${esc(mLabel(d.model_slug) || "none (retrieval only)")}</dd>
+      <dt>Reranker</dt><dd>${d.rerank === false ? "off" : esc((config.pipeline || {}).reranker || "on")}</dd>
+      <dt>Search</dt><dd>keyword (BM25) + exact ids + ${esc((config.pipeline || {}).embedder || "meaning search")}</dd>
+      ${d.standalone ? `<dt>Searched for</dt><dd${lang(d.standalone)}>${esc(d.standalone)}</dd>` : ""}</dl>
+    <h4>Time</h4><div class="tbar">${bar}</div><div class="legend">${leg}${t.cached ? "<span>answer replayed from cache</span>" : ""}</div>
+    ${gs != null ? `<h4>Match confidence</h4><div class="meter" role="img" aria-label="Best cross-encoder score ${gs.toFixed(2)} against threshold 0.70"><b class="${gs < 0.7 ? "low" : ""}" style="width:${(gs * 100).toFixed(1)}%"></b><i></i></div>
+      <div class="legend"><span>Best score ${gs.toFixed(2)} · line at 0.70 · ${gs < 0.7 ? "below it, so the answer is flagged for review" : "above it, no flag"}</span></div>` : ""}
+    <h4>Checks</h4><dl class="kv"><dt>Quotes</dt><dd>${d.answerable === false ? "declined; nothing to check" : (ck.ok ? "every quote found in its source" : "see warnings on the answer")}</dd>
+      <dt>Numbers</dt><dd>${(ck.unsupported_numbers || []).length ? "not in the sources: " + esc(ck.unsupported_numbers.join(", ")) : "every number is in a cited source" + ((ck.derived_numbers || []).length ? " or one step of arithmetic away (" + esc(ck.derived_numbers.join(", ")) + ")" : "")}</dd></dl>
+    <h4>Passages sent to the model, in final order</h4>
+    <table class="ptable">${rows || '<tr><td>No passages.</td></tr>'}</table>
+    <p class="legend" style="margin-top:10px">Bars show the reranker's score. Final order fuses its ranking with keyword and meaning search.</p>`;
+}
+$("#panelBtn").addEventListener("click", () => {
+  if (app.classList.contains("panel-open")) { setPanel(false); return; }
+  const i = sel.m >= 0 && current() && current().messages[sel.m] ? sel.m : lastAnswerIndex(); if (i >= 0) selectAnswer(i, null, true);
+});
+$("#panelClose").addEventListener("click", () => setPanel(false));
+
+/* ---------- sidebar, views ---------- */
+function setNav(open) {
+  if (narrow()) { app.classList.toggle("nav-open", open); $("#scrim").classList.toggle("on", open || app.classList.contains("panel-open")); }
+  else { app.classList.toggle("nav-closed", !open); store.set("cq-nav", open); }
+  $("#navOpen").hidden = narrow() ? false : open;
+  $("#nav").inert = !open;
+}
+$("#navClose").addEventListener("click", () => setNav(false));
+$("#navOpen").addEventListener("click", () => setNav(true));
+$("#scrim").addEventListener("click", () => { app.classList.remove("nav-open"); if (narrow()) $("#nav").inert = true; setPanel(false); $("#scrim").classList.remove("on"); });
+function syncNav() { if (narrow()) { app.classList.remove("nav-closed"); $("#navOpen").hidden = false; $("#nav").inert = !app.classList.contains("nav-open"); } else { app.classList.remove("nav-open"); const open = store.get("cq-nav", true); app.classList.toggle("nav-closed", !open); $("#navOpen").hidden = open; $("#nav").inert = !open; $("#scrim").classList.remove("on"); } }
+matchMedia("(max-width: 1100px)").addEventListener("change", syncNav); syncNav();
+$("#newChat").addEventListener("click", () => { startNew(); if (narrow()) setNav(false); });
+$("#newChat2").addEventListener("click", startNew);
+function showView(v) {
+  $("#chatView").hidden = v !== "chat"; $("#howView").hidden = v !== "how";
+  $$("[data-view]").forEach(b => b.setAttribute("aria-current", b.dataset.view === v ? "page" : "false"));
+  if (v === "how") { $("#title").textContent = "How it works"; $("#panelBtn").hidden = true; setPanel(false); loadScan(); loadMetrics(); if (location.hash !== "#how") window.history.replaceState(null, "", "#how"); }
+  else { const c = current(); $("#title").innerHTML = c ? `<span${lang(c.title)}>${esc(c.title)}</span>` : "New chat"; $("#panelBtn").hidden = lastAnswerIndex() < 0; if (location.hash === "#how") window.history.replaceState(null, "", location.pathname); }
+}
+$$("[data-view]").forEach(b => b.addEventListener("click", () => { showView(b.dataset.view); if (narrow()) setNav(false); }));
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && !menu.classList.contains("open")) { if (app.classList.contains("panel-open") && !dlg.open) setPanel(false); if (narrow()) { app.classList.remove("nav-open"); $("#scrim").classList.remove("on"); } }
+  const typing = /INPUT|TEXTAREA/.test(document.activeElement.tagName);
+  if (!typing && e.key === "/" ) { e.preventDefault(); showView("chat"); ta.focus(); }
+  if (!typing && (e.key === "n" || e.key === "N") && !e.metaKey && !e.ctrlKey) { e.preventDefault(); startNew(); }
+});
+
+/* ---------- how it works: architecture explorer, model table, scan ---------- */
+const STAGES = {
+  A: [
+    ["Read", "Read each document its own way", "The contract by font and position (margin titles matched by height), the rate book by item-number anchors with parent chains and ditto rows, the tender scan by three vision models with number voting.", ["344 + 9,649 + 32 passages", "one page per passage", "boxes from the PDF"]],
+    ["Check text", "Trust a text layer only if it is usable", "A per-page check sends corrupt or legacy-font pages to OCR instead of indexing gibberish.", ["PMGSY summary flagged", "17 Kruti Dev pages", "0 false alarms on 183 judgment pages"]],
+    ["Translate", "English twins for the Hindi tender", "So an English question finds a Hindi condition. Every digit must survive translation, or it is redone.", ["32 segments", "citations point at the Hindi page"]],
+    ["Embed", "Vectors for meaning search", "All 10,025 passages are encoded once and the vectors ship with the code: Cohere Embed Multilingual v3 for this live demo, multilingual-e5-small for the local, evaluated system.", ["1,024 and 384 dimensions", "about 3 minutes on Bedrock, 10 on a CPU"]],
+    ["Fine-tune", "Train the reranker on this corpus", "Synthetic questions, one-attribute near-misses and mined hard negatives, from training pages only. The weights live in the repository's release, not on this site.", ["9,519 pairs", "91 minutes on a laptop CPU", "threshold 0.70 from dev pages"], true],
+  ],
+  B: [
+    ["Route", "Decide what the message is", "A guardrail runs before any search. Plain greetings match a fixed list with no model call; everything else goes to Claude Haiku 5.5, which sorts it into a document question, a greeting, a question about this assistant, or something off-topic (including attempts to override the instructions). Only document questions are searched; the other replies are fixed text, so no model writes outside the evidence path. When unsure, it searches.", ["56 of 56 labelled messages", "96 of 96 gold and 30 of 30 blind questions searched", "runs alongside the search: no added wait"], true],
+    ["Follow-up", "Rewrite follow-ups", "In a conversation, \"and for 20 mm?\" becomes a standalone question before search, in the same router call. The rewrite is shown with the answer.", ["first questions are never rewritten", "4 of 4 rewrites kept the subject"]],
+    ["Exact ids", "Look up ids directly", "\"Item 2.33.1\" and \"2.33.6\" differ by one digit, \"Clause 10C\" and \"10CC\" by one letter. Ids are looked up, pinned to the top, and reported as missing when they do not exist.", ["Clause 47: does not exist", "ambiguous ids listed per chapter"]],
+    ["Search", "Keyword and meaning search, per document", "BM25 with a tokenizer that keeps ids whole and folds Hindi digits, plus e5 vectors. A document named in the question adds its own top 10, so a 32-passage tender is not drowned by 9,649 rate rows.", ["reciprocal rank fusion, k = 60"]],
+    ["Rerank", "A cross-encoder reorders the candidates", "Reads the question with each of about 23 candidates and fuses its order with the search order. This live demo uses Cohere Rerank 3.5 on Bedrock; the evaluated system uses the cross-encoder fine-tuned on this corpus, which also flags answers whose best match scores under 0.70.", ["top 8 go to the writer", "the flag routes to review, never blocks"], true],
+    ["Write", "Quote first, then answer", "The chosen model copies verbatim quotes, then answers with [S#] citations, says what is missing, and declines when the sources do not answer.", ["rules from error analysis: basic vs item rate, near-miss sizes, tender vs contract"]],
+    ["Verify", "Check without a model", "Every quote must be in its source; every number must be in a cited source or one arithmetic step away. A failure retries once, then shows a warning.", ["no silent failures"]],
+    ["Cite", "Show the page", "Each citation carries document, page, printed page and locator. Clicking renders the PDF page with the stored box drawn around the cited region.", ["PyMuPDF render, 110 dpi"]],
+  ],
+};
+function buildFlows() {
+  const det = $("#ndetail");
+  const all = [];
+  for (const k of ["A", "B"]) {
+    const f = $("#flow" + k);
+    f.innerHTML = STAGES[k].map((s, i) => `${i ? '<span class="arr" aria-hidden="true">→</span>' : ""}<button class="node${s[4] ? " ft" : ""}" aria-pressed="false" data-k="${k}" data-i="${i}">${esc(s[0])}</button>`).join("");
+    all.push(...$$(".node", f));
+  }
+  function show(b) {
+    all.forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    const s = STAGES[b.dataset.k][+b.dataset.i];
+    det.innerHTML = `<h4>${esc(s[1])}</h4><p>${esc(s[2])}</p><div class="facts">${s[3].map(f => `<span>${esc(f)}</span>`).join("")}</div>`;
+    if (!reduce) { det.classList.remove("appear"); void det.offsetWidth; det.classList.add("appear"); }
+  }
+  all.forEach(b => b.addEventListener("click", () => show(b)));
+  show(all[STAGES.A.length + 3]);
+}
+buildFlows();
+function renderModelTable() {
+  const tb = $("#modelTable tbody");
+  if (!config.models.length) { tb.innerHTML = '<tr><td colspan="5">No answer model is configured on this server (retrieval only).</td></tr>'; return; }
+  tb.innerHTML = config.models.map(m => `<tr${m.slug === config.default ? ' class="sel"' : ""}><td><strong>${esc(m.label)}</strong>${m.slug === config.default ? " <span class=\"pill yes\">Default</span>" : ""}<small>${esc(m.maker)}</small></td>
+    <td>${m.open_weights ? '<span class="pill yes">Open</span>' : '<span class="pill no">Closed</span>'}</td><td>${esc(m.where)}</td>
+    <td class="n">${m.gold != null ? (m.gold * 100).toFixed(1) + "%" : ""}</td><td class="n">${m.blind != null ? (m.blind * 100).toFixed(1) + "%" : ""}</td></tr>`).join("");
+}
+let scanLoaded = false;
+async function loadScan() {
+  if (scanLoaded || $("#howView").hidden) return;
+  if (config.access_required && !code) return;
+  if (config.pdfs && config.pdfs.nit === false) { $("#scanMsg").textContent = "The tender PDF is not on this server."; return; }
+  try {
+    const r = await fetch("/page/" + encodeURIComponent("nit:p1:letterhead:0"), { headers: hdrs() });
+    if (!r.ok) return;
+    const url = URL.createObjectURL(await r.blob());
+    $("#scan").innerHTML = `<img src="${url}" alt="Tender page 1, a Hindi scan; the handwritten letter number 1792 and date 27-3-25 are boxed">
+      <span class="hl" style="left:19%;top:8.9%;width:12%;height:2.8%"></span><span class="hl" style="left:72.5%;top:8.4%;width:15.5%;height:3%"></span>`;
+    scanLoaded = true;
+  } catch (e) {}
+}
+/* ---------- metrics explorer (assets/metrics.json, from evals/all_metrics.py) ---------- */
+let metrics = null, mtab = "retrieval";
+const pct = v => v == null ? "" : (v * 100).toFixed(1) + "%", dec = v => v == null ? "" : v.toFixed(3);
+function mtable(rows, cols, opts) {
+  opts = opts || {};
+  const best = {};
+  cols.forEach(c => { if (!c.cmp) return; const vs = rows.map(r => r[c.k]).filter(v => typeof v === "number"); if (vs.length) best[c.k] = c.cmp === "max" ? Math.max(...vs) : Math.min(...vs); });
+  const head = `<tr>${cols.map(c => `<th${c.n ? ' class="n"' : ""} title="${esc(c.t || "")}">${esc(c.h)}</th>`).join("")}</tr>`;
+  const body = rows.map(r => `<tr class="${opts.cls ? opts.cls(r) : ""}">${cols.map(c => {
+    const v = r[c.k], txt = c.f ? c.f(v, r) : esc(v == null ? "" : v);
+    const isBest = c.cmp && typeof v === "number" && Math.abs(v - best[c.k]) < 1e-9;
+    return `<td class="${c.n ? "n" : "lab"}">${isBest ? `<b class="best">${txt}</b>` : txt}${c.ci ? c.ci(r) : ""}</td>`; }).join("")}</tr>`).join("");
+  return `<div class="tblw"><table class="mt"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+}
+function renderMetrics() {
+  const box = $("#mbody");
+  if (!metrics) return;
+  const R = metrics.retrieval || [], G = metrics.generation || [];
+  const rcols = [{ h: "Configuration", k: "label" }, ...[["Hit@1", "hit1"], ["Hit@3", "hit3"], ["Hit@5", "hit5"], ["Hit@8", "hit8"], ["Recall@5", "recall5"], ["Recall@8", "recall8"], ["Recall@10", "recall10"],
+    ["Precision@1", "precision1"], ["Precision@5", "precision5"], ["MRR@10", "mrr10"], ["nDCG@10", "ndcg10"], ["Page Hit@5", "page_hit5"]].map(([h, k]) => ({ h, k, n: 1, cmp: "max", f: dec }))];
+  const cls = r => /live demo/.test(r.label) ? "sel live" : (/evaluated system/.test(r.label) ? "sel eval" : "");
+  const gcols = [{ h: "Configuration", k: "label", f: (v, r) => `${esc(v)}<span class="ci">${esc(r.retrieval)}</span>` },
+    { h: "Judged correct", k: "judged_correct", n: 1, cmp: "max", f: pct, ci: r => `<span class="ci">${pct(r.judged_ci[0])} to ${pct(r.judged_ci[1])}</span>` },
+    { h: "Key-fact recall", k: "key_fact_recall", n: 1, cmp: "max", f: pct }, { h: "All key facts", k: "all_key_facts", n: 1, cmp: "max", f: pct },
+    { h: "Citation hit", k: "citation_hit", n: 1, cmp: "max", f: pct }, { h: "Citation precision", k: "citation_precision", n: 1, cmp: "max", f: pct },
+    { h: "Negatives handled", k: "negatives_handled", n: 1, cmp: "max", f: (v, r) => `${pct(v)} <span class="ci">of ${r.negatives_n}</span>` },
+    { h: "Refusal precision", k: "refusal_precision", n: 1, cmp: "max", f: pct }, { h: "Over-refusal", k: "over_refusal", n: 1, cmp: "min", f: pct },
+    { h: "Unsupported number", k: "unsupported_number", n: 1, cmp: "min", f: pct }, { h: "Quotes verified", k: "quotes_verified", n: 1, cmp: "max", f: pct },
+    { h: "Median time", k: "latency_p50", n: 1, f: v => v == null ? "" : v.toFixed(1) + " s" }];
+  const gcls = r => /live demo/.test(r.label) ? "sel live" : "";
+  let h = "";
+  if (mtab === "retrieval") h = mtable(R.filter(r => r.stage === "retrieval"), rcols) + `<p class="mnote">First-stage search only, top 20 plus each document's own top 3. Exact ids are part of the hybrid modes.</p>`;
+  if (mtab === "rerank") h = mtable(R, rcols, { cls }) + `<p class="mnote">Re-sorted: ordered by the cross-encoder alone. Fused: its order combined with the search order by reciprocal rank fusion, as both pipelines use it. The left bar marks the evaluated system and the live demo.</p><p class="mnote">Reading it: every fused reranker moves the right passage to first place more often than the search order alone (Hit@1 0.786), and re-sorting by a cross-encoder alone loses to fusing it. The fine-tuned model beats the original on Hit@1 (0.833 against 0.821) but not on MRR or nDCG. Cohere Rerank 3.5 leads on the e5 search; on the Cohere search the fine-tuned model has the best Hit@1.</p>`;
+  if (mtab === "gold") h = mtable(G.filter(g => g.set === "gold"), gcols, { cls: gcls }) + `<p class="mnote">96 development questions. Median times were measured with several evaluation jobs sharing one laptop CPU, so read them as relative.</p>`;
+  if (mtab === "blind") h = mtable(G.filter(g => g.set === "blind"), gcols, { cls: gcls }) + `<p class="mnote">30 questions written after the code freeze, run once per configuration; aggregates only.</p>`;
+  if (mtab === "ft") {
+    const sy = metrics.reranker_synthetic, gg = metrics.gate_gold;
+    h = mtable(sy.rows, [{ h: "Reranking, held-out synthetic questions", k: "label" }, { h: "Hit@1", k: "hit1", n: 1, cmp: "max", f: dec }, { h: "Hit@8", k: "hit8", n: 1, cmp: "max", f: dec },
+      { h: "MRR@10", k: "mrr10", n: 1, cmp: "max", f: dec }, { h: "Near-miss AUROC, source", k: "auroc_source", n: 1, cmp: "max", f: dec }, { h: "Near-miss AUROC, top", k: "auroc_top", n: 1, cmp: "max", f: dec }])
+      + `<p class="mnote">${esc(sy.note)}</p>`
+      + mtable(gg.rows, [{ h: "Score as an answerability signal, real questions", k: "label" }, { h: "AUROC", k: "auroc", n: 1, cmp: "max", f: dec },
+        { h: "Answerable under 0.70", k: "answerable_below", n: 1, f: pct }, { h: "Unanswerable under 0.70", k: "unanswerable_below", n: 1, f: pct }])
+      + `<p class="mnote">${esc(gg.note)} A good flag puts few answerable and most unanswerable questions under the line.</p>`;
+  }
+  if (mtab === "read") {
+    const o = metrics.ocr, pa = metrics.parsing;
+    h = mtable(o.rows, [{ h: "OCR engine on the Hindi scan", k: "label" }, { h: "CER", k: "cer", n: 1, cmp: "min", f: pct }, { h: "Numbers exact", k: "numbers", n: 1 },
+      { h: "Fields (94)", k: "fields", n: 1 }, { h: "Role", k: "role" }]) + `<p class="mnote">${esc(o.note)}</p>`
+      + mtable(pa.rows, [{ h: "Table parsing and voting", k: "label" }, { h: "Result", k: "value", n: 1 }]);
+  }
+  if (mtab === "guard") {
+    const ro = metrics.router;
+    if (!ro) h = `<p class="mnote">No guardrail evaluation in this build.</p>`;
+    else {
+      const names = { docs: "Document question: searched", greeting: "Greeting, thanks, small talk", about: "About this assistant", off_topic: "Off-topic or instruction override" };
+      const rows = Object.entries(ro.per_route).map(([k, v]) => ({ label: names[k] || k, n: v.n, recall: v.recall, precision: v.precision }));
+      h = mtable(rows, [{ h: "Route", k: "label" }, { h: "Messages", k: "n", n: 1 }, { h: "Recall", k: "recall", n: 1, f: pct }, { h: "Precision", k: "precision", n: 1, f: pct }])
+        + mtable([{ label: "Gold questions routed to the documents", v: ro.gold_docs }, { label: "Blind questions routed to the documents (count only)", v: ro.blind_docs },
+            { label: "Follow-up rewrites that kept the subject", v: ro.rewrite_ok }, { label: "Messages answered by the greeting list, no model call", v: pct(ro.rules_share) },
+            { label: "Router time, median (alongside the search on a first question)", v: ro.latency_p50 + " s" }],
+          [{ h: "Check", k: "label" }, { h: "Result", k: "v", n: 1 }])
+        + `<p class="mnote">${esc(ro.note)} The costly error is a real question routed away from the documents, so the router searches whenever it is unsure.</p>`;
+    }
+  }
+  box.innerHTML = h;
+}
+$$("#mtabs [role=tab]").forEach((b, i, all) => {
+  b.addEventListener("click", () => { mtab = b.dataset.m; all.forEach(x => { const on = x === b; x.setAttribute("aria-selected", String(on)); x.tabIndex = on ? 0 : -1; }); renderMetrics(); });
+  b.addEventListener("keydown", e => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); const o = all[(i + (e.key === "ArrowRight" ? 1 : all.length - 1)) % all.length]; o.click(); o.focus(); } });
+});
+async function loadMetrics() {
+  if (metrics) return;
+  try { const r = await fetch("/assets/metrics.json"); if (r.ok) { metrics = await r.json(); renderMetrics(); } else $("#mbody").innerHTML = '<p class="mnote">Metrics are not available on this server.</p>'; }
+  catch (e) { $("#mbody").innerHTML = '<p class="mnote">Could not load the metrics.</p>'; }
+}
+
+// local nav scroll-spy inside the how view
+const howView = $("#howView");
+const spy = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) $$("#howNav a").forEach(a => a.classList.toggle("on", a.getAttribute("href") === "#" + en.target.id)); }), { root: howView, rootMargin: "-20% 0px -70% 0px" });
+$$("#art section").forEach(s => spy.observe(s));
+$$("#howNav a").forEach(a => a.addEventListener("click", e => { e.preventDefault(); const t = $(a.getAttribute("href")); howView.scrollTo({ top: howView.scrollTop + t.getBoundingClientRect().top - howView.getBoundingClientRect().top - 44, behavior: reduce ? "auto" : "smooth" }); }));
+
+/* ---------- start ---------- */
+async function init() {
+  renderThread(); renderRecents();
+  if (location.hash === "#how") showView("how");
+  try {
+    const r = await fetch("/models"); config = await r.json();
+  } catch (e) { config = { models: [], default: null, access_required: false, pdfs: {} }; }
+  codeLabel(); renderMenu(); renderModelTable();
+  const pl = config.pipeline || {}; rr.hidden = !pl.reranker; if (pl.reranker) rr.title = pl.reranker + ": reads the question with each candidate passage and reorders them";
+  if (!current()) renderThread();
+  warm(); loadScan();
+  ta.focus({ preventScroll: true });
+}
+init();
+})();
 </script>
 </body>
 </html>

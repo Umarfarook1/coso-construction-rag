@@ -38,7 +38,21 @@ score flags answers for review when no passage looks like it answers.
 
 ## Results
 
-| submitted system | gold set, 96 questions (development) | blind set, 30 questions |
+Judged correct, same retrieval, reranking and checks, only the answer writer or the hosting of the search models changed:
+
+| configuration | gold set, 96 (development) | blind set, 30 (run once) |
+|---|---|---|
+| Claude Sonnet 5.5 writer, Bedrock-hosted search and rerank (**the live demo**) | 92.7% | 96.7% |
+| Claude Sonnet 5.5 writer, local e5 + fine-tuned cross-encoder | 91.7% | 96.7% |
+| gpt-oss-120b writer (open weights), local e5 + fine-tuned cross-encoder (first submission) | 84.9% | 90.0% |
+
+Opus 5.5 92.7%, Haiku 5.5 89.1%, DeepSeek V3 88.0%, Qwen3 235B 87.5%, gpt-oss-20b 83.9% on the gold set. Every stage's
+metrics (Hit@k, Recall@k, Precision@k, MRR, nDCG for 12 retrieval and rerank configurations; correctness, citation,
+refusal and faithfulness metrics for every writer): [evals/METRICS.md](evals/METRICS.md).
+
+The open-weights configuration in detail:
+
+| gpt-oss-120b, fine-tuned retrieval | gold set, 96 questions (development) | blind set, 30 questions |
 |---|---|---|
 | judged correct (LLM judge, 95% interval) | 84.9% [79, 91] | 90.0% [80, 98] |
 | a citation points to the right clause / rate row / tender condition | 92.9% | 95.2% |
@@ -57,8 +71,17 @@ score flags answers for review when no passage looks like it answers.
 Full tables: [evals/RESULTS.md](evals/RESULTS.md). Method and caveats: [DESIGN.md section 7](DESIGN.md#7-evaluation).
 
 **Live demo:** https://coso-rag-web.vercel.app (the access code is in the submission email; it keeps the paid
-model behind a gate). The same web view as `cosorag serve`, as a Vercel function in Mumbai; the first question
-after a quiet spell loads the models and takes about 20 s. How it is built: [deploy/vercel](deploy/vercel/README.md).
+models behind a gate). A chat with follow-up questions, a model picker (Claude Sonnet 5.5 by default), the cited
+page in a side panel, a per-answer trace, and a How it works view with every metric. The demo calls every model
+through the Bedrock API: the fine-tuned reranker needs PyTorch and about 2 GB of memory, more than the free host
+gives, so it is published as [release v1.0](https://github.com/Umarfarook1/coso-construction-rag/releases/tag/v1.0)
+and runs with `cosorag serve` locally. How the deployment is built: [deploy/vercel](deploy/vercel/README.md).
+
+**Guardrail before retrieval:** the chat routes every message first. Greetings, questions about the assistant and
+unrelated requests (including attempts to override the instructions) get a fixed reply without a search; only document
+questions are searched, and the router searches whenever it is unsure. On 56 labelled messages it routes all correctly,
+and it sends all 96 gold and 30 blind questions to the documents; on a first question it runs alongside the search, so
+it adds no wait. [DESIGN.md](DESIGN.md#input-guardrail-routing-before-retrieval), `evals/router_eval.py`.
 
 ## Setup
 
@@ -126,11 +149,12 @@ uv run python adapt/eval_reranker.py --split dev --write-gate
 | `src/cosorag/retrieve.py`, `index.py` | exact id lookup, BM25 + dense, RRF, per-document lists |
 | `src/cosorag/rerank.py` | cross-encoder scoring, fusion with the hybrid order, review-flag threshold |
 | `src/cosorag/answer.py` | prompt, quote-then-answer, deterministic verifier |
-| `src/cosorag/show.py`, `serve.py` | page render with the cited region highlighted, local web view |
+| `src/cosorag/show.py`, `serve.py`, `web/` | page render with the cited region highlighted; the web view (chat, follow-ups, model picker, sources panel, How it works) |
+| `src/cosorag/models.py`, `chat.py`, `guard.py` | the answer writers a reader can pick; follow-up rewriting; the input guardrail that routes each chat message |
 | `scripts/` | corpus download, tender OCR, model download/packaging, `run_all_evals.sh` (the exact evaluation procedure) |
-| `deploy/vercel/` | the web view as a Vercel function: staging, build-time model fetch, access code |
+| `deploy/vercel/` | the web view as a Vercel function, Bedrock models only: staging, access code |
 | `adapt/` | synthetic data, pair mining, training, before/after evaluation |
-| `evals/` | gold set, blind set, harness, judge, OCR evaluation, results |
+| `evals/` | gold set, blind set, harness, judge, OCR evaluation, results; `generators.py` (writers compared), `all_metrics.py` (every stage's metrics) |
 | `data/processed/` | chunks, OCR readings, translations (committed) |
 
 ## Known limitations

@@ -83,7 +83,7 @@ class LLM:
                 fmt = "jpeg" if b[:3] == b"\xff\xd8\xff" else "png"
                 content.append({"image": {"format": fmt, "source": {"bytes": b}}})
             params = {"maxTokens": max_tokens}
-            if not self.model.startswith(("eu.anthropic.claude-sonnet-5", "eu.anthropic.claude-opus-5")):
+            if not re.search(r"anthropic\.claude-(sonnet|opus|haiku)-5", self.model):   # Claude 5 takes no temperature
                 params["temperature"] = temperature
             r = self._bedrock().converse(
                 modelId=self.model, system=[{"text": system}],

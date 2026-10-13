@@ -1,0 +1,10 @@
+{
+  "llm": "bedrock:openai.gpt-oss-20b-1:0",
+  "region": "ap-south-1",
+  "rerank": true,
+  "reranker": "models/xenc-coso",
+  "gate_threshold": 0.7,
+  "mode": "hybrid",
+  "split": "all",
+  "n": 96
+}

@@ -1,0 +1,9 @@
+{
+  "llm": "bedrock:global.anthropic.claude-sonnet-5-5",
+  "rerank": true,
+  "reranker": "bedrock:cohere.rerank-v3-5:0",
+  "gate_threshold": null,
+  "mode": "hybrid",
+  "split": "all",
+  "n": 30
+}
